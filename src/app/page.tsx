@@ -1,65 +1,324 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import AgentCard from '@/components/nexus/AgentCard';
+import ProbabilityDial from '@/components/nexus/ProbabilityDial';
+import InfoModal from '@/components/nexus/InfoModal';
+import ReportModal from '@/components/nexus/ReportModal';
+import { Play, Lock, BookOpen, ExternalLink, Globe } from 'lucide-react';
+import Image from 'next/image';
+import { nexusBrain } from '@/lib/nexus-brain';
+import { AnalysisResult } from '@/lib/nexus-types';
+import { useLanguage } from '@/context/LanguageContext';
+import TrendingTicker from '@/components/nexus/TrendingTicker';
+import CreditBalance from '@/components/nexus/CreditBalance';
+import PaymentModal from '@/components/nexus/PaymentModal';
+
+import { useSoundFX } from '@/hooks/useSoundFX';
+
+export default function NexusPage() {
+  const { language, setLanguage, t } = useLanguage();
+  const [analyzing, setAnalyzing] = useState(false);
+  const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [showInfo, setShowInfo] = useState(false);
+  const [isReportOpen, setIsReportOpen] = useState(false);
+  const [logs, setLogs] = useState<string[]>([]);
+  const [tokenInput, setTokenInput] = useState('');
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+
+  const { playHover, playClick, playScan, playAlert, playSuccess } = useSoundFX();
+
+  // Boot Sequence Voice
+
+  const runAnalysis = async () => {
+    if (!tokenInput) return;
+
+    playClick();
+    playScan();
+
+
+    setAnalyzing(true);
+    setResult(null);
+    setLogs([`> LOCKING TARGET: ${tokenInput.toUpperCase()}...`]);
+
+    // Simulation Logs
+    const logSequence = [
+      "> ESTABLISHING x/402 PAYMENT CHANNEL...",
+      "> AGENTS DEPLOYED TO MAINNET...",
+      "> INTERCEPTING MEMPOOL DATA...",
+      "> CRACKING LIQUIDITY LOCK...",
+    ];
+
+    // Start log sequence
+    let logIndex = 0;
+    const logInterval = setInterval(() => {
+      if (logIndex < logSequence.length) {
+        setLogs(prev => [...prev, logSequence[logIndex]]);
+        logIndex++;
+      } else {
+        clearInterval(logInterval);
+      }
+    }, 500);
+
+    try {
+      // Call the Real Brain with Language
+      const data = await nexusBrain.analyze(tokenInput, language);
+      setResult(data);
+      setLogs(prev => [...prev, ...data.logs, "> ANALYSIS COMPLETE."]);
+
+      // Voice Verdict
+      if (data.riskLevel === 'CRITICAL') {
+        playAlert();
+      } else if (data.riskLevel === 'SAFE') {
+        playSuccess();
+      } else {
+        // No sound or neutral sound
+      }
+
+    } catch (error) {
+      console.error("Analysis failed", error);
+
+    } finally {
+      setAnalyzing(false);
+      clearInterval(logInterval);
+    }
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
+    <div className="min-h-screen bg-black text-white font-sans selection:bg-gold-primary/30 overflow-hidden relative scanlines">
+
+      {/* Dynamic Background */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
         <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
+          src="/images/nexus/motherboard-bg.png"
+          alt="Nexus Motherboard"
+          fill
           priority
+          className={`object-cover opacity-40 transition-all duration-1000 ${result?.riskLevel === 'CRITICAL' ? 'grayscale brightness-50 sepiahue-rotate-[-50deg] saturate-200' : // Red tint for danger
+            result?.riskLevel === 'SAFE' ? 'grayscale-0' :
+              'grayscale'
+            }`}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+        <div className="absolute inset-0 bg-[url('/images/nexus/noise.svg')] opacity-20 mix-blend-overlay"></div>
+        <div className={`absolute inset-0 bg-radial-gradient from-transparent to-black transition-colors duration-1000 ${result?.riskLevel === 'CRITICAL' ? 'via-red-950/20' : ''
+          }`}></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/80 pointer-events-none"></div>
+      </div>
+
+      <div className="relative z-10 container mx-auto px-4 pt-4 pb-4 h-screen flex flex-col">
+
+        {/* 3D Logo Header - Compact Version */}
+        <header className="flex flex-col items-center mb-6 shrink-0 relative">
+
+          {/* Language Toggle */}
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onMouseEnter={playHover}
+            onClick={() => { playClick(); setLanguage(language === 'es' ? 'en' : 'es'); }}
+            className="absolute left-0 top-0 md:left-8 md:top-4 text-xs font-mono text-gold-primary border border-gold-primary/30 px-3 py-1 rounded hover:bg-gold-primary/10 flex items-center gap-2 z-50 pointer-events-auto"
+          >
+            <Globe size={14} />
+            <span className="font-bold">{language.toUpperCase()}</span>
+          </motion.button>
+
+          {/* Info Button */}
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onMouseEnter={playHover}
+            onClick={() => { playClick(); setShowInfo(true); }}
+            className="absolute right-0 top-0 md:right-8 md:top-4 text-xs font-mono text-gold-primary border border-gold-primary/30 px-3 py-1 rounded hover:bg-gold-primary/10 flex items-center gap-2 z-50 pointer-events-auto"
+          >
+            <BookOpen size={14} />
+            <span className="hidden md:inline">{t('ui.manual_btn')}</span>
+          </motion.button>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: -30 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="relative w-32 h-32 md:w-40 md:h-40 -mb-4 drop-shadow-[0_0_20px_rgba(212,175,55,0.3)]"
           >
             <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+              src="/images/nexus/logo-3d.png"
+              alt="Wolfsfera Nexus Logo"
+              fill
+              priority
+              className="object-contain"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          </motion.div>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="text-xs text-gray-400 max-w-2xl mx-auto flex items-center justify-center gap-2 font-mono tracking-widest uppercase bg-black/50 backdrop-blur-sm px-4 py-1 rounded-full border border-white/10 glitch-text"
+            data-text={t('ui.subtitle')}
           >
-            Documentation
-          </a>
+            <Lock size={12} className="text-gold-primary" />
+            <span className="text-white">{t('ui.firewall_title')}</span> <span className="text-gray-600">|</span> <span>{t('ui.subtitle')}</span>
+          </motion.p>
+        </header>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center perspective-1000 flex-1 content-center">
+
+          {/* Left Column: Agents - Compact */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="h-px bg-gold-primary/50 flex-1"></div>
+              <h2 className="text-[10px] uppercase tracking-[0.3em] text-gold-primary font-bold">Agents Swarm</h2>
+              <div className="h-px bg-gold-primary/50 flex-1"></div>
+            </div>
+
+            <div className="space-y-3" onMouseEnter={playHover}>
+              <AgentCard
+                name={t('agents.analyst.name')}
+                role={t('agents.analyst.role')}
+                image="/images/nexus/agent-analyst.png"
+                id="0x71C...9A2"
+                price="0.05 USDC"
+                status={analyzing ? 'analyzing' : result ? 'complete' : 'idle'}
+                finding={result?.findings.analyst}
+              />
+              <AgentCard
+                name={t('agents.sentinel.name')}
+                role={t('agents.sentinel.role')}
+                image="/images/nexus/agent-sentinel.png"
+                id="0x3B2...1F4"
+                price="0.02 USDC"
+                status={analyzing ? 'analyzing' : result ? 'complete' : 'idle'}
+                finding={result?.findings.sentinel}
+              />
+              <AgentCard
+                name={t('agents.shadow.name')}
+                role={t('agents.shadow.role')}
+                image="/images/nexus/agent-shadow.png"
+                id="0x99D...E21"
+                price="0.10 USDC"
+                status={analyzing ? 'analyzing' : result ? 'complete' : 'idle'}
+                finding={result?.findings.shadow}
+              />
+            </div>
+          </div>
+
+          {/* Center Column: Dial & Action - Compact */}
+          <div className={`lg:col-span-2 border transition-all duration-1000 rounded-3xl p-6 backdrop-blur-md shadow-2xl relative overflow-hidden group h-full max-h-[500px] flex flex-col items-center justify-center ${result?.riskLevel === 'CRITICAL' ? 'bg-red-950/30 border-red-500/30 shadow-red-900/20' :
+            result?.riskLevel === 'SAFE' ? 'bg-green-950/30 border-green-500/30 shadow-green-900/20' :
+              'bg-black/40 border-white/10'
+            }`}>
+
+            {/* Decorative HUD Elements */}
+            <div className="absolute top-0 right-0 p-3 opacity-50">
+              <div className={`w-12 h-12 border-t-2 border-r-2 rounded-tr-xl ${result?.riskLevel === 'CRITICAL' ? 'border-red-500' : 'border-gold-primary/30'}`}></div>
+            </div>
+            <div className="absolute bottom-0 left-0 p-3 opacity-50">
+              <div className={`w-12 h-12 border-b-2 border-l-2 rounded-bl-xl ${result?.riskLevel === 'CRITICAL' ? 'border-red-500' : 'border-gold-primary/30'}`}></div>
+            </div>
+
+            <div className="flex flex-col items-center justify-center w-full relative z-10">
+              <div className="w-full max-w-md mb-8 transform hover:scale-105 transition-transform duration-500 relative">
+                <ProbabilityDial value={result?.score ?? 0} loading={analyzing} />
+              </div>
+
+              <div className="text-center w-full max-w-sm space-y-4">
+              </div>
+            </div>
+
+
+            {!analyzing && result === null && (
+              <div className="w-full max-w-sm flex flex-col gap-4">
+                <input
+                  type="text"
+                  value={tokenInput}
+                  onChange={(e) => { setTokenInput(e.target.value.toUpperCase()); playHover(); }}
+                  onFocus={playScan}
+                  placeholder={t('ui.placeholder')}
+                  className="w-full bg-black/50 border border-gold-primary/30 rounded-xl py-4 px-4 text-center font-mono text-lg text-gold-primary placeholder:text-gray-600 focus:outline-none focus:border-gold-primary focus:bg-gold-primary/5 transition-all shadow-inner"
+                />
+
+                <motion.button
+                  whileHover={{ scale: 1.05, textShadow: "0 0 8px rgb(0,0,0)" }}
+                  whileTap={{ scale: 0.95 }}
+                  onMouseEnter={playHover}
+                  onClick={runAnalysis}
+                  disabled={!tokenInput}
+                  className={`w-full font-bold text-lg py-4 rounded-xl shadow-[0_0_30px_rgba(212,175,55,0.4)] hover:shadow-[0_0_50px_rgba(212,175,55,0.6)] transition-all flex items-center justify-center gap-3 relative overflow-hidden ${!tokenInput ? 'bg-gray-800 text-gray-500 cursor-not-allowed shadow-none' : 'bg-gold-gradient text-black'
+                    }`}
+                >
+                  <div className="absolute inset-0 bg-white/20 translate-y-full hover:translate-y-0 transition-transform duration-300"></div>
+                  <Play fill={!tokenInput ? 'gray' : 'black'} size={20} />
+                  <span className="tracking-wider">{t('ui.analyze_btn')}</span>
+                </motion.button>
+              </div>
+            )}
+
+            {analyzing && (
+              <div className="text-gold-primary font-mono text-xs animate-pulse border border-gold-primary/20 bg-gold-primary/5 p-4 rounded-lg text-left space-y-1 w-full max-w-md">
+                <p>&gt; TARGET LOCKED: {tokenInput.toUpperCase() || "UNKNOWN"}</p>
+                <p>&gt; AGGREGATING SWARM SIGNALS... <span className="text-green-500">OK</span></p>
+                <p>&gt; AGENT "SENTINEL" SCANNING... <span className="text-green-500">DONE</span></p>
+                <p>&gt; COMPUTING RISK PROBABILITY...</p>
+              </div>
+            )}
+
+            {result && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="space-y-6 w-full max-w-md"
+              >
+                <div className={`p-6 border rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.2)] ${result.riskLevel === 'SAFE' ? 'bg-green-500/10 border-green-500/30' :
+                  result.riskLevel === 'CRITICAL' ? 'bg-red-500/10 border-red-500/30' :
+                    'bg-yellow-500/10 border-yellow-500/30'
+                  }`}>
+                  <h3 className={`font-bold text-2xl mb-2 flex items-center justify-center gap-2 ${result.riskLevel === 'SAFE' ? 'text-green-400' :
+                    result.riskLevel === 'CRITICAL' ? 'text-red-500' :
+                      'text-yellow-400'
+                    }`}>
+                    <div className={`w-3 h-3 rounded-full animate-ping ${result.riskLevel === 'SAFE' ? 'bg-green-500' :
+                      result.riskLevel === 'CRITICAL' ? 'bg-red-500' :
+                        'bg-yellow-500'
+                      }`}></div>
+                    {result.verdict}
+                  </h3>
+                  <p className="text-gray-300 text-sm">{logs[logs.length - 1]}</p>
+                </div>
+                <button
+                  onClick={() => { playClick(); setResult(null); setLogs([]); setTokenInput(''); }}
+                  className="text-gray-500 hover:text-white transition-colors text-xs font-mono tracking-widest uppercase hover:underline"
+                >
+                  [ {language === 'es' ? 'RESETEAR SISTEMA' : 'RESET SYSTEM'} ]
+                </button>
+
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onMouseEnter={playHover}
+                  onClick={() => { playClick(); setIsReportOpen(true); }}
+                  className="w-full py-3 bg-white/5 border border-white/10 hover:bg-gold-primary/10 hover:border-gold-primary/30 text-gold-primary rounded-xl flex items-center justify-center gap-2 transition-all group"
+                >
+                  <span className="text-xs font-bold tracking-widest">VIEW FULL INTELLIGENCE REPORT</span>
+                  <ExternalLink size={14} className="group-hover:translate-x-1 transition-transform" />
+                </motion.button>
+              </motion.div>
+            )}
+          </div>
         </div>
-      </main>
+      </div>
+
+      {/* Footer / Logs - REPLACED BY TICKER */}
+      <TrendingTicker />
+
+      <InfoModal isOpen={showInfo} onClose={() => setShowInfo(false)} />
+      <ReportModal
+        isOpen={isReportOpen}
+        onClose={() => setIsReportOpen(false)}
+        result={result}
+        onTopUp={() => setIsPaymentOpen(true)}
+      />
+      <PaymentModal isOpen={isPaymentOpen} onClose={() => setIsPaymentOpen(false)} />
     </div>
   );
 }

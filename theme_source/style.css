@@ -1,0 +1,171 @@
+/*
+Theme Name: Wolfsfera Nexus
+Theme URI: https://wolfsfera.com
+Author: Wolfsfera Team
+Description: Tema oficial del ecosistema Wolfsfera. Optimizado para afiliación, velocidad y estética Dark Premium.
+Version: 1.0.0
+Text Domain: wolfsfera
+*/
+
+/* 1. Header Spacing & WolfShop */
+.site-header {
+    top: 0;
+    /* Reset to top */
+    width: 100%;
+    /* Full width */
+    left: 0;
+    transform: none;
+    border-radius: 0;
+    /* No rounded corners */
+    background: rgba(0, 0, 0, 0.8);
+    /* Ensure background is visible */
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.btn-shop {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(212, 175, 55, 0.5);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.btn-shop:hover {
+    background: var(--accent-gold);
+    color: #000;
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+}
+
+.shop-icon {
+    font-size: 1.1rem;
+}
+
+:root {
+    /* Palette: Midnight Gold (XRP Wolfsfera Match) */
+    --bg-dark: #000000;
+    --bg-card: rgba(255, 255, 255, 0.03);
+    --bg-card-hover: rgba(255, 255, 255, 0.07);
+
+    --accent-gold: #D4AF37;
+    --accent-gold-glow: rgba(212, 175, 55, 0.4);
+
+    --text-main: #ffffff;
+    --text-muted: #9CA3AF;
+    /* Tailwind gray-400 equivalent */
+
+    --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+
+    /* Affiliate Colors */
+    --btn-cta: #D4AF37;
+    --btn-cta-hover: #F1C40F;
+}
+
+/* 2. Wolf Hero Image (3D Effect) */
+.hero-bg-wolf {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Path relative to style.css */
+    background-image: url('assets/images/wolf-hero.jpg');
+    background-size: cover;
+    background-position: center center;
+    /* Center the face */
+    z-index: -1;
+    /* Darken significantly to match xrpwolfsfera readability */
+    filter: brightness(0.4) contrast(1.1);
+}
+
+/* Logo Styles */
+.site-logo {
+    height: 50px;
+    /* Adjust as needed */
+    width: auto;
+    border-radius: 50%;
+    /* Optional: make it circular if it's the wolf head */
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+}
+
+.logo-link {
+    display: flex;
+    align-items: center;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    font-family: var(--font-main);
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Glassmorphism Utility */
+.glass-panel {
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+}
+
+/* Typography */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text-main);
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+}
+
+/* Container */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Buttons (Affiliate Optimized) */
+.btn-gold {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--accent-gold) 0%, #b8962e 100%);
+    color: #000;
+    font-weight: 800;
+    padding: 12px 30px;
+    border-radius: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 15px var(--accent-gold-glow);
+    border: none;
+    cursor: pointer;
+}
+
+.btn-gold:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px var(--accent-gold-glow);
+    background: linear-gradient(135deg, #F1C40F 0%, #d4af37 100%);
+}
