@@ -14,6 +14,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import TrendingTicker from '@/components/nexus/TrendingTicker';
 import CreditBalance from '@/components/nexus/CreditBalance';
 import PaymentModal from '@/components/nexus/PaymentModal';
+import LegalModal from '@/components/nexus/LegalModal';
 
 import { useSoundFX } from '@/hooks/useSoundFX';
 
@@ -26,6 +27,7 @@ export default function NexusPage() {
   const [logs, setLogs] = useState<string[]>([]);
   const [tokenInput, setTokenInput] = useState('');
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [isLegalOpen, setIsLegalOpen] = useState(false);
 
   const { playHover, playClick, playScan, playAlert, playSuccess } = useSoundFX();
 
@@ -311,6 +313,16 @@ export default function NexusPage() {
       {/* Footer / Logs - REPLACED BY TICKER */}
       <TrendingTicker />
 
+      {/* Legal Footer Link (Absolute Bottom Right, above ticker) */}
+      <div className="absolute bottom-12 right-4 z-40">
+        <button
+          onClick={() => setIsLegalOpen(true)}
+          className="text-[10px] text-gray-600 font-mono hover:text-gray-400 transition-colors uppercase tracking-widest"
+        >
+          LEGAL / DISCLAIMER
+        </button>
+      </div>
+
       <InfoModal isOpen={showInfo} onClose={() => setShowInfo(false)} />
       <ReportModal
         isOpen={isReportOpen}
@@ -319,6 +331,7 @@ export default function NexusPage() {
         onTopUp={() => setIsPaymentOpen(true)}
       />
       <PaymentModal isOpen={isPaymentOpen} onClose={() => setIsPaymentOpen(false)} />
+      <LegalModal isOpen={isLegalOpen} onClose={() => setIsLegalOpen(false)} />
     </div>
   );
 }
