@@ -12,20 +12,37 @@ interface ReportModalProps {
     onTopUp: () => void;
 }
 
+import { useSoundFX } from '@/hooks/useSoundFX';
+
 export default function ReportModal({ isOpen, onClose, result, onTopUp }: ReportModalProps) {
     const { t } = useLanguage();
-    const { spendCredits } = useCredits();
+    const { spendCredits, balance } = useCredits(); // Correct property is 'balance' not 'credits'
+    const { playSuccess, playClick, playError } = useSoundFX();
     const [isSubscribed, setIsSubscribed] = useState(false);
+    const [isUnlocking, setIsUnlocking] = useState(false);
 
     const handleSubscribe = () => {
         if (isSubscribed) return;
 
-        const success = spendCredits(1);
-        if (success) {
-            setIsSubscribed(true);
-            // In a real app, we would call an API here to register the alert
+        playClick();
+
+        // 1. Check if user has enough credits
+        if (credits > 0) {
+            // 2. Start Decryption Sequence
+            const success = spendCredits(1);
+            if (success) {
+                setIsUnlocking(true);
+                // Simulate "Heavy Decryption" process
+                setTimeout(() => {
+                    playSuccess(); // BINGO SOUND
+                    setIsUnlocking(false);
+                    setIsSubscribed(true);
+                }, 2000);
+            }
         } else {
-            onTopUp();
+            // 3. No credits? Redirect to Payment Gateway
+            playError(); // Access Denied Sound
+            onTopUp(); // Open PaymentModal
         }
     };
 
@@ -80,8 +97,8 @@ export default function ReportModal({ isOpen, onClose, result, onTopUp }: Report
                                 <button
                                     onClick={handleSubscribe}
                                     className={`px-4 py-2 rounded-full font-bold text-xs flex items-center gap-2 transition-all ${isSubscribed
-                                            ? 'bg-green-500/20 text-green-400 border border-green-500/50'
-                                            : 'bg-gold-primary/10 text-gold-primary border border-gold-primary/30 hover:bg-gold-primary/20'
+                                        ? 'bg-green-500/20 text-green-400 border border-green-500/50'
+                                        : 'bg-gold-primary/10 text-gold-primary border border-gold-primary/30 hover:bg-gold-primary/20'
                                         }`}
                                 >
                                     {isSubscribed ? <BellRing size={16} /> : <Bell size={16} />}
@@ -128,77 +145,121 @@ export default function ReportModal({ isOpen, onClose, result, onTopUp }: Report
                                 )}
                             </div>
 
-                            {/* SECTION 2: SWARM INTELLIGENCE */}
-                            <div>
-                                <h3 className="text-sm font-mono text-gold-primary font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                                    <Activity size={14} /> {t('report.swarm_header')}
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <AgentFindingCard agent={result.findings.analyst} name={t('agents.analyst.name')} role={t('agents.analyst.role')} />
-                                    <AgentFindingCard agent={result.findings.sentinel} name={t('agents.sentinel.name')} role={t('agents.sentinel.role')} />
-                                    <AgentFindingCard agent={result.findings.shadow} name={t('agents.shadow.name')} role={t('agents.shadow.role')} />
-                                </div>
-                            </div>
+                            {/* PREMIUM CONTENT (BLURRED UNTIL UNLOCKED) */}
+                            <div className="relative">
 
-                            {/* SECTION 2.5: EXTERNAL INTELLIGENCE UPLINK */}
-                            <div>
-                                <h3 className="text-sm font-mono text-blue-400 font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                                    <ExternalLink size={14} /> {t('report.uplink_header')}
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <ExternalLinkButton
-                                        label={t('links.explorer')}
-                                        icon={<Globe size={16} />}
-                                        href={getExplorerUrl(pair?.chainId, pair?.baseToken?.address)}
-                                        color="blue"
-                                    />
-                                    <ExternalLinkButton
-                                        label={t('links.rugcheck')}
-                                        icon={<ShieldCheck size={16} />}
-                                        href={getAuditUrl(pair?.chainId, pair?.baseToken?.address)}
-                                        color="green"
-                                    />
-                                    <ExternalLinkButton
-                                        label={t('links.twitter')}
-                                        icon={<Search size={16} />}
-                                        href={`https://twitter.com/search?q=${pair?.baseToken?.address || pair?.baseToken?.symbol}&src=typed_query`}
-                                        color="sky"
-                                    />
-                                </div>
-                            </div>
+                                <div className={`transition-all duration-500 ${!isSubscribed ? 'blur-lg opacity-50 select-none pointer-events-none' : 'blur-0 opacity-100'}`}>
 
-                            {/* SECTION 3: FINAL VERDICT */}
-                            <div className={`p-8 rounded-2xl border-2 flex flex-col md:flex-row items-center justify-between gap-8 ${result.riskLevel === 'ELITE' ? 'bg-purple-500/10 border-purple-500/50' :
-                                result.riskLevel === 'SAFE' ? 'bg-green-500/10 border-green-500/50' :
-                                    result.riskLevel === 'DEGEN' ? 'bg-yellow-500/10 border-yellow-500/50' :
-                                        result.riskLevel === 'DANGER' ? 'bg-orange-500/10 border-orange-500/50' :
-                                            'bg-red-500/10 border-red-500/50'
-                                }`}>
-                                <div className="flex-1">
-                                    <h4 className="text-sm font-mono uppercase tracking-widest opacity-70 mb-2">{t('report.verdict_header')}</h4>
-                                    <div className={`text-4xl md:text-5xl font-black uppercase leading-none mb-2 ${result.riskLevel === 'ELITE' ? 'text-purple-400 drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]' :
-                                        result.riskLevel === 'SAFE' ? 'text-green-500' :
-                                            result.riskLevel === 'DEGEN' ? 'text-yellow-400' :
-                                                result.riskLevel === 'DANGER' ? 'text-orange-500' :
-                                                    'text-red-600 glitch-text'
-                                        }`} data-text={result.verdict}>
-                                        {result.verdict}
+                                    {/* SECTION 2: SWARM INTELLIGENCE */}
+                                    <div className="mb-10">
+                                        <h3 className="text-sm font-mono text-gold-primary font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                            <Activity size={14} /> {t('report.swarm_header')}
+                                        </h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                            <AgentFindingCard agent={result.findings.analyst} name={t('agents.analyst.name')} role={t('agents.analyst.role')} />
+                                            <AgentFindingCard agent={result.findings.sentinel} name={t('agents.sentinel.name')} role={t('agents.sentinel.role')} />
+                                            <AgentFindingCard agent={result.findings.shadow} name={t('agents.shadow.name')} role={t('agents.shadow.role')} />
+                                        </div>
                                     </div>
-                                    <p className="text-gray-300 max-w-xl">
-                                        {/* Description logic is complicated to handle via dictionary keys in a clean way without a helper, 
-                                            but we can use the riskLevel to pick the description key. */}
-                                        {t(`descriptions.${result.riskLevel.toLowerCase()}`)}
-                                    </p>
+
+                                    {/* SECTION 2.5: EXTERNAL INTELLIGENCE UPLINK */}
+                                    <div className="mb-10">
+                                        <h3 className="text-sm font-mono text-blue-400 font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                            <ExternalLink size={14} /> {t('report.uplink_header')}
+                                        </h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <ExternalLinkButton
+                                                label={t('links.explorer')}
+                                                icon={<Globe size={16} />}
+                                                href={getExplorerUrl(pair?.chainId, pair?.baseToken?.address)}
+                                                color="blue"
+                                            />
+                                            <ExternalLinkButton
+                                                label={t('links.rugcheck')}
+                                                icon={<ShieldCheck size={16} />}
+                                                href={getAuditUrl(pair?.chainId, pair?.baseToken?.address)}
+                                                color="green"
+                                            />
+                                            <ExternalLinkButton
+                                                label={t('links.twitter')}
+                                                icon={<Search size={16} />}
+                                                href={`https://twitter.com/search?q=${pair?.baseToken?.address || pair?.baseToken?.symbol}&src=typed_query`}
+                                                color="sky"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* SECTION 3: FINAL VERDICT */}
+                                    <div className={`p-8 rounded-2xl border-2 flex flex-col md:flex-row items-center justify-between gap-8 ${result.riskLevel === 'ELITE' ? 'bg-purple-500/10 border-purple-500/50' :
+                                        result.riskLevel === 'SAFE' ? 'bg-green-500/10 border-green-500/50' :
+                                            result.riskLevel === 'DEGEN' ? 'bg-yellow-500/10 border-yellow-500/50' :
+                                                result.riskLevel === 'DANGER' ? 'bg-orange-500/10 border-orange-500/50' :
+                                                    'bg-red-500/10 border-red-500/50'
+                                        }`}>
+                                        <div className="flex-1">
+                                            <h4 className="text-sm font-mono uppercase tracking-widest opacity-70 mb-2">{t('report.verdict_header')}</h4>
+                                            <div className={`text-4xl md:text-5xl font-black uppercase leading-none mb-2 ${result.riskLevel === 'ELITE' ? 'text-purple-400 drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]' :
+                                                result.riskLevel === 'SAFE' ? 'text-green-500' :
+                                                    result.riskLevel === 'DEGEN' ? 'text-yellow-400' :
+                                                        result.riskLevel === 'DANGER' ? 'text-orange-500' :
+                                                            'text-red-600 glitch-text'
+                                                }`} data-text={result.verdict}>
+                                                {result.verdict}
+                                            </div>
+                                            <p className="text-gray-300 max-w-xl">
+                                                {t(`descriptions.${result.riskLevel.toLowerCase()}`)}
+                                            </p>
+                                        </div>
+                                        <div className="flex flex-col items-center gap-4 min-w-[200px]">
+                                            <div className="text-6xl font-black text-white font-mono">{result.score}</div>
+                                            <div className="text-xs uppercase tracking-widest text-gray-500">{t('report.score_label')}</div>
+                                            {pair && (
+                                                <a href={pair.url} target="_blank" rel="noopener noreferrer" className="px-6 py-2 bg-white text-black font-bold rounded hover:scale-105 transition-transform flex items-center gap-2">
+                                                    {t('ui.view_chart')} <ExternalLink size={16} />
+                                                </a>
+                                            )}
+                                        </div>
+                                    </div>
+
                                 </div>
-                                <div className="flex flex-col items-center gap-4 min-w-[200px]">
-                                    <div className="text-6xl font-black text-white font-mono">{result.score}</div>
-                                    <div className="text-xs uppercase tracking-widest text-gray-500">{t('report.score_label')}</div>
-                                    {pair && (
-                                        <a href={pair.url} target="_blank" rel="noopener noreferrer" className="px-6 py-2 bg-white text-black font-bold rounded hover:scale-105 transition-transform flex items-center gap-2">
-                                            {t('ui.view_chart')} <ExternalLink size={16} />
-                                        </a>
-                                    )}
-                                </div>
+
+                                {/* LOCK / DECRYPT OVERLAY */}
+                                {!isSubscribed && (
+                                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center pt-20">
+
+                                        {isUnlocking ? (
+                                            <motion.div
+                                                initial={{ scale: 0.9, opacity: 0 }}
+                                                animate={{ scale: 1, opacity: 1 }}
+                                                className="bg-black/90 backdrop-blur-xl border border-green-500/50 p-8 rounded-2xl flex flex-col items-center text-center max-w-md shadow-[0_0_50px_rgba(34,197,94,0.3)]"
+                                            >
+                                                <div className="w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                                                <h3 className="text-2xl font-black text-green-500 mb-2 animate-pulse">DECRYPTING...</h3>
+                                                <p className="text-gray-400 font-mono text-xs">
+                                                    EXTRACTING ON-CHAIN METADATA...
+                                                </p>
+                                            </motion.div>
+                                        ) : (
+                                            <motion.div
+                                                initial={{ scale: 0.9 }} animate={{ scale: 1 }}
+                                                className="bg-black/80 backdrop-blur-xl border border-gold-primary/50 p-8 rounded-2xl flex flex-col items-center text-center max-w-md shadow-[0_0_50px_rgba(212,175,55,0.2)]"
+                                            >
+                                                <Lock size={40} className="text-gold-primary mb-4 animate-bounce" />
+                                                <h3 className="text-2xl font-black text-white mb-2">CLASSIFIED INTEL</h3>
+                                                <p className="text-gray-400 mb-6 text-sm">
+                                                    The <strong>Risk Score</strong>, <strong>Agent Findings</strong>, and <strong>Social Sentiment</strong> are encrypted.
+                                                </p>
+                                                <button
+                                                    onClick={handleSubscribe}
+                                                    className="bg-gold-primary text-black text-lg font-bold px-8 py-3 rounded-full hover:scale-105 hover:bg-white transition-all shadow-lg flex items-center gap-2"
+                                                >
+                                                    UNLOCK REPORT <span className="bg-black/20 px-2 py-0.5 rounded text-xs ml-2">1 CREDIT</span>
+                                                </button>
+                                            </motion.div>
+                                        )}
+
+                                    </div>
+                                )}
                             </div>
 
                             {/* DISCLAIMER FOOTER */}

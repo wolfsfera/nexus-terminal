@@ -45,6 +45,9 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
         setError(null);
 
         try {
+            // 1. Get Fresh Blockhash
+            const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+
             const transaction = new Transaction().add(
                 SystemProgram.transfer({
                     fromPubkey: publicKey,
@@ -53,13 +56,20 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                 })
             );
 
+            transaction.recentBlockhash = blockhash;
+            transaction.feePayer = publicKey;
+
+            // 2. Send and Confirm
             const signature = await sendTransaction(transaction, connection);
 
-            // In production, we should wait for confirmation here
-            const confirmation = await connection.confirmTransaction(signature, 'processed');
+            const confirmation = await connection.confirmTransaction({
+                signature,
+                blockhash,
+                lastValidBlockHeight
+            }, 'confirmed'); // 'confirmed' is safer than 'processed' for payments
 
             if (confirmation.value.err) {
-                throw new Error("Transaction failed");
+                throw new Error("Transaction Failed on-chain");
             }
 
             // SUCCESS
@@ -71,9 +81,17 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                 onClose();
             }, 2000);
 
-        } catch (err) {
-            console.error(err);
-            setError("Transaction Failed / Cancelled");
+        } catch (err: any) {
+            console.error("Payment Error:", err);
+
+            // Smart Error Handling
+            if (err.name === 'WalletSignTransactionError' || err.message?.includes('User rejected')) {
+                setError("Payment Cancelled by User");
+            } else if (err.message?.includes('0x0')) {
+                setError("Insufficient Funds for Transaction");
+            } else {
+                setError("Transaction Failed. potentially insufficient funds or network congestion.");
+            }
             setProcessing(null);
         }
     };
@@ -141,8 +159,8 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                                         onClick={() => handlePayment(pkg.id, pkg.credits, pkg.price)}
                                         disabled={processing !== null}
                                         className={`w-full p-4 rounded-xl border flex items-center justify-between group transition-all relative overflow-hidden ${pkg.popular
-                                                ? 'bg-purple-900/20 border-purple-500/50 hover:bg-purple-900/30'
-                                                : 'bg-white/5 border-white/10 hover:bg-white/10'
+                                            ? 'bg-purple-900/20 border-purple-500/50 hover:bg-purple-900/30'
+                                            : 'bg-white/5 border-white/10 hover:bg-white/10'
                                             }`}
                                     >
                                         <div className="flex items-center gap-4 relative z-10">

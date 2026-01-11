@@ -111,37 +111,45 @@ export default function NexusPage() {
       <div className="relative z-10 container mx-auto px-4 pt-4 pb-4 h-screen flex flex-col">
 
         {/* 3D Logo Header - Compact Version */}
-        <header className="flex flex-col items-center mb-6 shrink-0 relative">
+        <header className="flex flex-col items-center mb-6 shrink-0 relative w-full max-w-6xl">
 
-          {/* Language Toggle */}
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onMouseEnter={playHover}
-            onClick={() => { playClick(); setLanguage(language === 'es' ? 'en' : 'es'); }}
-            className="absolute left-0 top-0 md:left-8 md:top-4 text-xs font-mono text-gold-primary border border-gold-primary/30 px-3 py-1 rounded hover:bg-gold-primary/10 flex items-center gap-2 z-50 pointer-events-auto"
-          >
-            <Globe size={14} />
-            <span className="font-bold">{language.toUpperCase()}</span>
-          </motion.button>
+          {/* Language Toggle (Left) */}
+          <div className="absolute left-0 top-0 md:left-4 md:top-4 z-30">
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onMouseEnter={playHover}
+              onClick={() => { playClick(); setLanguage(language === 'es' ? 'en' : 'es'); }}
+              className="text-xs font-mono text-gold-primary border border-gold-primary/30 px-3 py-1 rounded hover:bg-gold-primary/10 flex items-center gap-2 pointer-events-auto bg-black/50 backdrop-blur"
+            >
+              <Globe size={14} />
+              <span className="font-bold">{language.toUpperCase()}</span>
+            </motion.button>
+          </div>
 
-          {/* Info Button */}
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onMouseEnter={playHover}
-            onClick={() => { playClick(); setShowInfo(true); }}
-            className="absolute right-0 top-0 md:right-8 md:top-4 text-xs font-mono text-gold-primary border border-gold-primary/30 px-3 py-1 rounded hover:bg-gold-primary/10 flex items-center gap-2 z-50 pointer-events-auto"
-          >
-            <BookOpen size={14} />
-            <span className="hidden md:inline">{t('ui.manual_btn')}</span>
-          </motion.button>
+          {/* Right Side Controls (Manual + Credits) */}
+          <div className="absolute right-0 top-0 md:right-4 md:top-4 z-30 flex items-center gap-4">
+            {/* Info Button */}
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onMouseEnter={playHover}
+              onClick={() => { playClick(); setShowInfo(true); }}
+              className="text-xs font-mono text-gold-primary border border-gold-primary/30 px-3 py-1 rounded hover:bg-gold-primary/10 flex items-center gap-2 pointer-events-auto bg-black/50 backdrop-blur"
+            >
+              <BookOpen size={14} />
+              <span className="hidden md:inline">{t('ui.manual_btn')}</span>
+            </motion.button>
+
+            {/* Credit Balance / Buy Button */}
+            <CreditBalance onTopUp={() => { playClick(); setIsPaymentOpen(true); }} />
+          </div>
 
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: -30 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="relative w-32 h-32 md:w-40 md:h-40 -mb-4 drop-shadow-[0_0_20px_rgba(212,175,55,0.3)]"
+            className="relative w-32 h-32 md:w-40 md:h-40 -mb-4 drop-shadow-[0_0_20px_rgba(212,175,55,0.3)] mt-8 md:mt-0"
           >
             <Image
               src="/images/nexus/logo-3d.png"
