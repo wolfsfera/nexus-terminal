@@ -10,6 +10,9 @@ export interface SecurityData {
         percent: string;
     }>;
     creator_percent: string;
+    // GoPlus Solana can be object or null
+    freezable: { status: string } | null | string;
+    metadata_is_mutable: string; // "1" if mutable
 }
 
 export const securityService = {

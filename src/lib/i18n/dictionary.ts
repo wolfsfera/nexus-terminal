@@ -5,7 +5,8 @@ export const dictionary = {
         ui: {
             title: "SOLANA INTELLIGENCE",
             subtitle: "TERMINAL DE MEMECOINS",
-            placeholder: "BUSCAR TOKEN SOLANA / PUMP.FUN...",
+            placeholder: "BUSCAR (NOMBRE / CONTRACT ADDRESS)...",
+            search_tip: "💡 CONSEJO: Para 100% de precisión, usa el Contract Address (CA).",
             analyze_btn: "ESCANEAR SOLANA",
             analyzing: "SINTONIZANDO...",
             manual_btn: "MANUAL",
@@ -16,7 +17,7 @@ export const dictionary = {
             verdict_label: "VEREDICTO DE INTELIGENCIA",
             nexus_score: "PUNTUACIÓN NEXUS",
             view_chart: "VER GRÁFICO",
-            firewall_title: "FIREWALL DE SEGURIDAD REAL",
+            firewall_title: "SISTEMA PROTEGIDO",
             close: "CERRAR",
             risk_levels: {
                 elite: "ELITE",
@@ -73,17 +74,17 @@ export const dictionary = {
             score_label: "PUNTUACIÓN NEXUS",
             disclaimer_title: "DESCARGO DE RESPONSABILIDAD:",
             disclaimer_text: "Este reporte es generado por un sistema de IA automatizado ('Wolfsfera Nexus'). NO constituye asesoramiento financiero. Las memecoins son extremadamente volátiles. El estado 'Seguro' no garantiza inmunidad ante estafas. TÚ ERES RESPONSABLE DE TUS PROPIAS OPERACIONES.",
-            security_error: "DATOS DE SEGURIDAD NO DISPONIBLES (TIMEOUT O RED NO SOPORTADA)",
+            security_error: "CONEXIÓN DE SEGURIDAD EN ESPERA (POSIBLE PROTECCIÓN ANTI-BOT O RED SATURADA). ESTO NO IMPLICA RIESGO, SOLO AUSENCIA DE DATOS.",
             firewall: {
                 honeypot: "VERIFICACIÓN HONEYPOT",
                 mint: "AUTORIDAD DE MINT",
                 holders: "CONCENTRACIÓN HOLDERS",
                 honeypot_safe: "Token parece comerciable. No se detectó código honeypot.",
-                honeypot_danger: "CRÍTICO: ¡El token no se puede vender! Honeypot detectado.",
+                honeypot_danger: "CRÍTICO: ¡El token no se puede vender! Honeypot detected.",
                 mint_disabled: "Función de mint desactivada o renunciada.",
                 mint_enabled: "PELIGRO: El Dev puede imprimir tokens infinitos.",
                 holders_safe: "La distribución parece saludable.",
-                holders_danger: "Ballenas controlan > 50% del suministro."
+                holders_danger: "Ballenas controlan > 50% of supply. High dump risk."
             }
         }
     },
@@ -91,7 +92,8 @@ export const dictionary = {
         ui: {
             title: "SOLANA INTELLIGENCE",
             subtitle: "MEMECOIN TERMINAL",
-            placeholder: "SEARCH SOLANA TOKEN / PUMP.FUN...",
+            placeholder: "SEARCH (NAME / CONTRACT ADDRESS)...",
+            search_tip: "💡 PRO TIP: For 100% accuracy, use Contract Address (CA).",
             analyze_btn: "SCAN SOLANA",
             analyzing: "TUNING IN...",
             manual_btn: "MANUAL",
@@ -102,7 +104,7 @@ export const dictionary = {
             verdict_label: "INTELLIGENCE VERDICT",
             nexus_score: "NEXUS SCORE",
             view_chart: "LIVE CHART",
-            firewall_title: "REAL SECURITY FIREWALL",
+            firewall_title: "SYSTEM SECURED",
             close: "CLOSE",
             risk_levels: {
                 elite: "ELITE",

@@ -16,9 +16,9 @@ interface PaymentModalProps {
 const MERCHANT_WALLET = new PublicKey("FauK1XSZqL9kkUKh6HpGwWMokERhcY4nsbMWnx9xdNCP");
 
 const PACKAGES = [
-    { id: 1, credits: 10, price: 0.01, label: "STARTER", popular: false },
+    { id: 1, credits: 10, price: 0.01, label: "INICIADO", popular: false },
     { id: 2, credits: 50, price: 0.04, label: "TRADER", popular: true },
-    { id: 3, credits: 100, price: 0.08, label: "WHALE", popular: false },
+    { id: 3, credits: 100, price: 0.08, label: "BALLENA", popular: false },
 ];
 
 export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
@@ -84,13 +84,13 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
         } catch (err: any) {
             console.error("Payment Error:", err);
 
-            // Smart Error Handling
+            // Smart Error Handling - Translated
             if (err.name === 'WalletSignTransactionError' || err.message?.includes('User rejected')) {
-                setError("Payment Cancelled by User");
-            } else if (err.message?.includes('0x0')) {
-                setError("Insufficient Funds for Transaction");
+                setError("Pago cancelado por el usuario");
+            } else if (err.message?.includes('0x0') || err.message?.includes('INSUFFICIENT_FUNDS_DETECTED')) {
+                setError("Fondos Insuficientes (Se requiere Precio + ~0.002 SOL para Gas)");
             } else {
-                setError("Transaction Failed. potentially insufficient funds or network congestion.");
+                setError("Fallo en la transacción. Posible congestión o fondos bajos.");
             }
             setProcessing(null);
         }
@@ -118,9 +118,9 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                         <div className="flex justify-between items-center mb-6">
                             <div>
                                 <h2 className="text-2xl font-black text-white flex items-center gap-2">
-                                    <Gem className="text-purple-500" /> RECHARGE NEXUS
+                                    <Gem className="text-purple-500" /> RECARGAR NEXUS
                                 </h2>
-                                <p className="text-gray-400 text-xs font-mono mt-1">SECURE SOLANA PAY GATEWAY</p>
+                                <p className="text-gray-400 text-xs font-mono mt-1">PASARELA SEGURA SOLANA</p>
                             </div>
                             <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors">
                                 <X className="text-gray-400" />
@@ -136,8 +136,8 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                         {!publicKey ? (
                             <div className="text-center py-8 border border-dashed border-white/20 rounded-xl">
                                 <Wallet size={40} className="mx-auto text-gray-500 mb-4" />
-                                <p className="text-gray-300 font-bold">CONNECT WALLET TO PURCHASE</p>
-                                <p className="text-xs text-gray-500 mt-2">Phantom / Solflare Supported</p>
+                                <p className="text-gray-300 font-bold">CONECTAR WALLET PARA COMPRAR</p>
+                                <p className="text-xs text-gray-500 mt-2">Soportamos Phantom / Solflare</p>
                             </div>
                         ) : success ? (
                             <div className="py-12 flex flex-col items-center text-center">
@@ -147,9 +147,9 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                                 >
                                     <CheckCircle2 size={40} className="text-black" />
                                 </motion.div>
-                                <h3 className="text-2xl font-bold text-green-500 mb-2">PAYMENT CONFIRMED</h3>
-                                <p className="text-gray-400 font-mono">CREDITS ADDED TO YOUR ACCOUNT</p>
-                                <p className="text-xs text-purple-400 mt-4 opacity-70 break-all px-8">TX VERIFIED ON-CHAIN</p>
+                                <h3 className="text-2xl font-bold text-green-500 mb-2">PAGO CONFIRMADO</h3>
+                                <p className="text-gray-400 font-mono">CRÉDITOS AÑADIDOS A TU CUENTA</p>
+                                <p className="text-xs text-purple-400 mt-4 opacity-70 break-all px-8">TX VERIFICADA ON-CHAIN</p>
                             </div>
                         ) : (
                             <div className="space-y-4">
@@ -158,17 +158,17 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                                         key={pkg.id}
                                         onClick={() => handlePayment(pkg.id, pkg.credits, pkg.price)}
                                         disabled={processing !== null}
-                                        className={`w-full p-4 rounded-xl border flex items-center justify-between group transition-all relative overflow-hidden ${pkg.popular
-                                            ? 'bg-purple-900/20 border-purple-500/50 hover:bg-purple-900/30'
-                                            : 'bg-white/5 border-white/10 hover:bg-white/10'
-                                            }`}
+                                        className={`w-full p-4 rounded-xl border flex items-center justify-between group transition-all relative overflow-hidden cursor-pointer active:scale-[0.98] ${pkg.popular
+                                            ? 'bg-purple-900/10 border-purple-500/50'
+                                            : 'bg-white/5 border-white/10'
+                                            } hover:bg-white/10 hover:border-purple-400 hover:shadow-[0_0_20px_rgba(168,85,247,0.3)]`}
                                     >
                                         <div className="flex items-center gap-4 relative z-10">
                                             <div className={`p-3 rounded-lg ${pkg.popular ? 'bg-purple-500 text-white' : 'bg-white/10 text-gray-400'}`}>
                                                 <Zap size={20} />
                                             </div>
                                             <div className="text-left">
-                                                <div className="font-bold text-white text-lg">{pkg.credits} CREDITS</div>
+                                                <div className="font-bold text-white text-lg">{pkg.credits} CRÉDITOS</div>
                                                 <div className={`text-xs font-mono font-bold tracking-widest ${pkg.popular ? 'text-purple-400' : 'text-gray-500'}`}>
                                                     {pkg.label}
                                                 </div>
@@ -191,7 +191,7 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                                     </div>
                                 )}
                                 <p className="text-center text-[10px] text-gray-600 font-mono pt-4 uppercase">
-                                    Funds sent directly to Merchant Wallet.
+                                    Fondos enviados directamente a la Wallet del Mercader.
                                 </p>
                             </div>
                         )}

@@ -2,6 +2,7 @@
 import { AnalysisResult, RiskLevel } from './nexus-types';
 import { DexScreenerPair, dexscreener } from '../services/dexscreener';
 import { securityService, SecurityData } from '../services/security';
+import { solanaService, DirectSecurityReport } from '../services/solana-contract';
 import { dictionary, Locale } from './i18n/dictionary';
 
 const SCENARIOS = { /* ... kept just incase ... */ };
@@ -17,29 +18,89 @@ export const nexusBrain = {
         ];
 
         if (!pairs || pairs.length === 0) {
-            logs.push("> ERROR: TOKEN NOT FOUND ON-CHAIN.");
-            logs.push(`> STATUS: ${language === 'es' ? 'NO INDEXADO O SIN LIQUIDEZ' : 'NOT INDEXED OR NO LIQUIDITY POOL'}.`);
-            return {
-                score: 0,
-                riskLevel: 'DANGER',
-                verdict: dictionary[language].verdicts.ghost, // 'NOT INDEXED / GHOST'
-                findings: {
-                    analyst: { id: "ERR", level: "DANGER", message: "DATA VOID", details: language === 'es' ? "Token no encontrado. Posiblemente muy nuevo o muerto." : "Token not found. Potentially too new or dead." },
-                    sentinel: { id: "ERR", level: "DANGER", message: "NO ACTIVITY", details: language === 'es' ? "Sin historial de trading." : "No trading history found." },
-                    shadow: { id: "ERR", level: "DANGER", message: "UNKNOWN CONTRACT", details: language === 'es' ? "Escaneo profundo imposible sin datos de pool." : "Deep scan impossible without pool data." }
+            // TRY DIRECT READ EVEN IF NOT INDEXED (GHOST MODE ENHANCED)
+            // Check if input looks like a Solana address (base58, length 32-44)
+            const isAddress = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(tokenInput);
+
+            let directReport: DirectSecurityReport | null = null;
+            if (isAddress) {
+                logs.push(`> DETECTED POTENTIAL ADDRESS. ATTEMPTING DIRECT BLOCKCHAIN READ...`);
+                directReport = await solanaService.generateSecurityReport(tokenInput);
+                if (directReport.metadata) {
+                    logs.push(`> DIRECT READ SUCCESS: CONTRACT FOUND ON-CHAIN.`);
+                    logs.push(`> SUPPLY: ${directReport.metadata.supply} | DECIMALS: ${directReport.metadata.decimals}`);
+                } else {
+                    logs.push(`> DIRECT READ FAILED: INVALID OR NON-EXISTENT CONTRACT.`);
+                }
+            }
+
+            if (!directReport?.metadata) {
+                // ORIGINAL ERROR LOGIC
+                logs.push("> ERROR: TOKEN NOT FOUND ON-CHAIN (API + DIRECT).");
+                logs.push(`> STATUS: ${language === 'es' ? 'NO INDEXADO O SIN LIQUIDEZ' : 'NOT INDEXED OR NO LIQUIDITY POOL'}.`);
+
+                return {
+                    score: 0,
+                    riskLevel: 'DANGER',
+                    verdict: dictionary[language].verdicts.ghost, // 'NOT INDEXED / GHOST'
+                    findings: {
+                        analyst: { id: "ERR", level: "DANGER", message: "DATA VOID", details: language === 'es' ? "Token no encontrado. Posiblemente muy nuevo o muerto." : "Token not found. Potentially too new or dead." },
+                        sentinel: { id: "ERR", level: "DANGER", message: "NO ACTIVITY", details: language === 'es' ? "Sin historial de trading." : "No trading history found." },
+                        shadow: { id: "ERR", level: "DANGER", message: "UNKNOWN CONTRACT", details: language === 'es' ? "Escaneo profundo imposible sin datos de pool." : "Deep scan impossible without pool data." }
+                    },
+                    logs: logs,
+                    pairData: {
+                        chainId: 'solana',
+                        dexId: 'unknown',
+                        url: '',
+                        pairAddress: 'UNKNOWN',
+                        baseToken: {
+                            name: 'UNKNOWN TARGET',
+                            symbol: tokenInput.toUpperCase(),
+                            address: tokenInput
+                        },
+                        quoteToken: { name: 'SOL', symbol: 'SOL', address: '' },
+                        priceNative: '0',
+                        priceUsd: '0',
+                        txns: { m5: { buys: 0, sells: 0 }, h1: { buys: 0, sells: 0 }, h6: { buys: 0, sells: 0 }, h24: { buys: 0, sells: 0 } },
+                        volume: { h24: 0, h6: 0, h1: 0, m5: 0 },
+                        priceChange: { h1: 0, h6: 0, h24: 0, m5: 0 },
+                        liquidity: { usd: 0, base: 0, quote: 0 }
+                    },
+                    securityData: null
+                };
+            }
+            // IF DIRECT READ SUCCEEDED BUT NO DEX DATA -> PARTIAL GHOST REPORT
+            logs.push(`> STATUS: CONTRACT EXISTS BUT NO LIQUIDITY POOL FOUND.`);
+            // Pass to analyzeTokenData with a Mock Pair using real metadata names if possible (we don't get name from spl-token, only basic supply/mint/freeze. Metaplex needed for name, but keep simple)
+            // We'll proceed to standard analysis but with empty pair data, relying on directReport for verdict.
+            // We need to construct a 'bestPair' mock.
+            const ghostPair: DexScreenerPair = {
+                chainId: 'solana',
+                dexId: 'unknown',
+                url: '',
+                pairAddress: 'UNKNOWN',
+                baseToken: {
+                    name: directReport.metadata?.name || 'SOLANA CONTRACT (DIRECT)',
+                    symbol: directReport.metadata?.symbol || `${tokenInput.slice(0, 4)}..${tokenInput.slice(-4)}`,
+                    address: tokenInput
                 },
-                logs: logs,
-                pairData: undefined,
-                securityData: null
+                quoteToken: { name: 'SOL', symbol: 'SOL', address: '' },
+                priceNative: '0', priceUsd: '0',
+                txns: { m5: { buys: 0, sells: 0 }, h1: { buys: 0, sells: 0 }, h6: { buys: 0, sells: 0 }, h24: { buys: 0, sells: 0 } },
+                volume: { h24: 0, h6: 0, h1: 0, m5: 0 },
+                priceChange: { h1: 0, h6: 0, h24: 0, m5: 0 },
+                liquidity: { usd: 0, base: 0, quote: 0 }
             };
+            return analyzeTokenData(ghostPair, tokenInput, logs, null, directReport, language);
         }
 
         // 2. SMART PAIR SELECTION (Solana > Address > Name > Liquidity)
-        // PRIORITIZE SOLANA
+        // ... (Existing sorting logic maintained) ...
         pairs.sort((a, b) => {
             if (a.chainId === 'solana' && b.chainId !== 'solana') return -1;
             if (a.chainId !== 'solana' && b.chainId === 'solana') return 1;
-            return 0; // Keep original order (usually liquidity)
+            return 0;
         });
 
         let bestPair = pairs[0];
@@ -57,17 +118,9 @@ export const nexusBrain = {
                 bestPair = nameMatch;
                 logs.push(`> TARGET LOCKED VIA EXACT NAME/SYMBOL MATCH.`);
             } else {
-                // C. Liquidity Fallback (Highest USD Liquidity) - BUT respecting Solana sort if possible?
-                // Actually, if we sorted by Solana first, pairs[0] is already the best Solana liquid pair if no exact match.
-                // But let's refine: if no name match, maybe we want the highest liquidity SOLANA pair.
-                // The sort above puts ALL Solana pairs first. 
-                // So if we just take pairs[0] here (which is what happens if no matches found below?), we are good.
-                // But the logic below re-sorts by liquidity for the fallback 'C'.
-
-                // Let's filter for Solana first for the fallback
+                // C. Liquidity Fallback 
                 const solanaPairs = pairs.filter(p => p.chainId === 'solana');
                 const fallbackPool = solanaPairs.length > 0 ? solanaPairs : pairs;
-
                 bestPair = fallbackPool.sort((a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0))[0];
                 logs.push(`> TARGET SELECTION: HIGHEST LIQUIDITY PAIR (${bestPair.chainId.toUpperCase()}).`);
             }
@@ -76,22 +129,31 @@ export const nexusBrain = {
         logs.push(`> TARGET IDENTIFIED: ${bestPair.baseToken.name} / ${bestPair.quoteToken.symbol}`);
         logs.push(`> CHAIN: ${bestPair.chainId.toUpperCase()} | PAIR: ${bestPair.pairAddress.slice(0, 6)}...`);
 
-        // 2. Fetch Security Data (Audit)
-        logs.push(`> INITIATING SECURITY PROTOCOL (GoPlus)...`);
-        const security = await securityService.checkTokenSecurity(bestPair.chainId, bestPair.pairAddress);
+        // 3. PARALLEL ANALYSIS: Security API + Direct Chain Read
+        logs.push(`> INITIATING DUAL-LAYER SECURITY SCAN...`);
 
-        if (security) {
-            logs.push(`> SECURITY DATA RECEIVED. PARSING...`);
-        } else {
-            logs.push(`> WARNING: SECURITY AUDIT FAILED / TIMEOUT.`);
+        const securityPromise = securityService.checkTokenSecurity(bestPair.chainId, bestPair.baseToken.address);
+
+        // Only run direct read for Solana
+        let directReportPromise: Promise<DirectSecurityReport | null> = Promise.resolve(null);
+        if (bestPair.chainId === 'solana') {
+            logs.push(`> LAYER 2: DIRECT BLOCKCHAIN CONNECTION ESTABLISHED.`);
+            directReportPromise = solanaService.generateSecurityReport(bestPair.baseToken.address);
         }
 
-        // 3. Analyze with FULL Data
-        return analyzeTokenData(bestPair, tokenInput, logs, security, language);
+        const [security, directReport] = await Promise.all([securityPromise, directReportPromise]);
+
+        if (security) logs.push(`> LAYER 1 (API): DATA RECEIVED.`);
+        else logs.push(`> LAYER 1 (API): NO DATA.`);
+
+        if (directReport && directReport.contractReadable) logs.push(`> LAYER 2 (DIRECT): CONTRACT METADATA EXTRACTED.`);
+
+        // 4. Analyze with FULL Data
+        return analyzeTokenData(bestPair, tokenInput, logs, security, directReport, language);
     }
 };
 
-function analyzeTokenData(pair: DexScreenerPair, tokenInput: string, existingLogs: string[], security: SecurityData | null, language: Locale): AnalysisResult {
+function analyzeTokenData(pair: DexScreenerPair, tokenInput: string, existingLogs: string[], security: SecurityData | null, directReport: DirectSecurityReport | null, language: Locale): AnalysisResult {
     let score = 50; // Start neutral
     const logs: string[] = [...existingLogs];
     const isEs = language === 'es'; // Helper for brevity
@@ -107,21 +169,32 @@ function analyzeTokenData(pair: DexScreenerPair, tokenInput: string, existingLog
     // 1. ANALYST: Liquidity Check (The Foundation)
     const liquidity = pair.liquidity?.usd || 0;
 
-    // GHOST TOKEN CHECK (Inactive Pump.fun coins)
+    // GHOST TOKEN CHECK (Inactive Pump.fun coins) - Modified for Direct Read compatibility
+    // If we have direct read flags, we are NOT a ghost in the sense of 'unknown', but maybe 'dead market'.
     if (liquidity < 100) {
-        return {
-            score: 0,
-            riskLevel: 'CRITICAL',
-            verdict: dictionary[language].verdicts.ghost,
-            findings: {
-                analyst: { id: "DEAD-LIQ", level: "CRITICAL", message: isEs ? "SIN LIQUIDEZ" : "NO LIQUIDITY", details: isEs ? `Pool vacío ($${liquidity}). Token muerto.` : `Pool is empty ($${liquidity}). Token is dead.` },
-                sentinel: { id: "DEAD-VOL", level: "CRITICAL", message: isEs ? "SIN VOLUMEN" : "NO VOLUME", details: isEs ? "Nadie está operando esto." : "No one is trading this." },
-                shadow: { id: "DEAD-CON", level: "CRITICAL", message: "ABANDONED", details: isEs ? "Proyecto parece abandonado." : "Project appears abandoned." }
-            },
-            logs: [...logs, "> CRITICAL: ZERO LIQUIDITY DETECTED.", "> VERDICT: GHOST TOKEN."],
-            pairData: pair,
-            securityData: security
-        };
+        // If we have critical direct flags, return CRITICAL verdict immediately
+        if (directReport && directReport.overallRisk === 'CRITICAL') {
+            score = 0;
+            // Let logic flow down or return early? 
+            // Better to let logic flow but knowing liquidity is dead.
+            // Actually, if liquidity is <100, we usually return early.
+            // Let's modify the return object to include direct flags.
+        } else {
+            // Standard Ghost return
+            return {
+                score: 0,
+                riskLevel: 'CRITICAL',
+                verdict: dictionary[language].verdicts.ghost,
+                findings: {
+                    analyst: { id: "DEAD-LIQ", level: "CRITICAL", message: isEs ? "SIN LIQUIDEZ" : "NO LIQUIDITY", details: isEs ? `Pool vacío ($${liquidity}).` : `Pool is empty ($${liquidity}).` },
+                    sentinel: { id: "DEAD-VOL", level: "CRITICAL", message: isEs ? "SIN VOLUMEN" : "NO VOLUME", details: isEs ? "Nadie está operando esto." : "No one is trading this." },
+                    shadow: { id: "DEAD-CON", level: "CRITICAL", message: "ABANDONED", details: isEs ? "Proyecto parece abandonado." : "Project appears abandoned." }
+                },
+                logs: [...logs, "> VERDICT: GHOST TOKEN / ABANDONED."],
+                pairData: pair,
+                securityData: security
+            };
+        }
     }
 
     if (liquidity < 1000) {
@@ -138,7 +211,7 @@ function analyzeTokenData(pair: DexScreenerPair, tokenInput: string, existingLog
             id: "LIQ-WARN",
             level: "DANGER",
             message: isEs ? "LIQUIDEZ BAJA" : "LOW LIQUIDITY",
-            details: isEs ? `Liquidez ($${liquidity.toLocaleString()}) es baja. Alto riesgo de slippage.` : `Liquidity ($${liquidity.toLocaleString()}) is low. High slippage risk.`
+            details: isEs ? `Liquidez ($${liquidity.toLocaleString()}) es baja.` : `Liquidity ($${liquidity.toLocaleString()}) is low.`
         };
     } else {
         score += 20;
@@ -160,7 +233,7 @@ function analyzeTokenData(pair: DexScreenerPair, tokenInput: string, existingLog
             id: "VOL-SUS",
             level: "DEGEN",
             message: isEs ? "ACTIVIDAD BOT" : "BOT ACTIVITY",
-            details: isEs ? "Volumen > 10x Liquidez. Churn artificial detectado." : "Volume > 10x Liquidity. Artificial churn detected."
+            details: isEs ? "Volumen > 10x Liquidez. Churn artificial." : "Volume > 10x Liquidity. Artificial churn."
         };
     } else if (volume === 0) {
         score -= 40;
@@ -182,6 +255,15 @@ function analyzeTokenData(pair: DexScreenerPair, tokenInput: string, existingLog
 
     // 3. SHADOW: Age & Security (Merged with Audit Data)
     const ageHours = pair.pairCreatedAt ? (Date.now() - pair.pairCreatedAt) / (1000 * 60 * 60) : 0;
+
+    // ZOMBIE DETECTOR (Moved here to access ageHours)
+    if (volToLiq < 0.05 && ageHours > 24) {
+        score -= 30;
+        findings.sentinel.level = 'DANGER';
+        findings.sentinel.message = isEs ? "TOKEN ZOMBIE" : "ZOMBIE TOKEN";
+        findings.sentinel.details = isEs ? `Volumen muerto (<5% Liq).` : `Dead volume (<5% Liq).`;
+        logs.push(`> SENTINEL ALERT: ZOMBIE DETECTED.`);
+    }
 
     // Default Shadow Finding based on Age
     if (ageHours < 1) {
@@ -211,60 +293,98 @@ function analyzeTokenData(pair: DexScreenerPair, tokenInput: string, existingLog
     }
 
     // --- REAL SECURITY OVERRIDES (The Firewall) ---
+    // 1. API CHECKS
     if (security) {
-        // Honeypot Check
         if (security.is_honeypot === "1") {
             score = 0;
-            findings.shadow = {
-                id: "HP-DETECTED",
-                level: "CRITICAL",
-                message: isEs ? "HONEYPOT DETECTADO" : "HONEYPOT DETECTED",
-                details: isEs ? "Confirmado por API GoPlus: No se puede vender." : "GoPlus API confirmed: Token cannot be sold."
-            };
+            findings.shadow = { id: "HP-DETECTED", level: "CRITICAL", message: isEs ? "HONEYPOT DETECTADO" : "HONEYPOT DETECTED", details: isEs ? "API GoPlus: No se puede vender." : "GoPlus API: Cannot sell." };
             logs.push(`> SECURITY ALERT: HONEYPOT POSITIVE.`);
         }
-
-        // Mint Authority Check
         if (security.mintable === "1") {
-            score -= 50;
-            findings.shadow.details += isEs ? " | ALERTA: MINT ACTIVO." : " | WARNING: MINT AUTH ENABLED.";
-            // Force critical if safe previously
-            if (findings.shadow.level === 'SAFE') {
-                findings.shadow.level = 'CRITICAL';
-                findings.shadow.message = isEs ? "RIESGO DE MINT" : "MINT RISK";
-            }
-            logs.push(`> SECURITY ALERT: MINT AUTHORITY ENABLED.`);
+            score = Math.min(score, 35);
+            findings.shadow.level = 'CRITICAL';
+            findings.shadow.message = isEs ? "RIESGO DE MINT" : "MINT RISK";
+            findings.shadow.details += isEs ? " | MINT ACTIVO." : " | MINT ACTIVE.";
+            logs.push(`> SECURITY ALERT: MINT AUTHORITY ENABLED. SCORE CAPPED.`);
         }
+        // ... (Freezable / Mutable existing logic retained implicitly or re-added below if needed) ...
+        // Re-adding for completeness to ensure no regression
+        let isFreezable = false;
+        if (typeof security.freezable === 'object' && security.freezable !== null && 'status' in security.freezable) {
+            isFreezable = (security.freezable as any).status === "1";
+        } else if (typeof security.freezable === 'string') {
+            isFreezable = security.freezable === "1";
+        }
+        if (isFreezable) {
+            score = Math.min(score, 30);
+            findings.sentinel.level = 'CRITICAL';
+            findings.sentinel.message = isEs ? "AUTORIDAD DE CONGELACIÓN" : "FREEZE AUTHORITY";
+            findings.sentinel.details = isEs ? "Dev puede congelar." : "Dev can freeze.";
+            logs.push(`> SECURITY ALERT: BLACKLIST/FREEZE AUTHORITY DETECTED.`);
+        }
+    } else {
+        score -= 30;
+        if (!directReport) { // Only penalize heavily if BOTH fail
+            findings.shadow = { id: "SEC-UNKNOWN", level: "DANGER", message: isEs ? "SIN AUDITORÍA" : "NO AUDIT", details: isEs ? "Sin datos de seguridad." : "No security data." };
+            logs.push(`> WARNING: UNVERIFIED CONTRACT. ASSUMING HIGH RISK.`);
+        }
+    }
 
-        // Holder Analysis
-        // (Just logging it, the UI will display the grid)
-        logs.push(`> HOLDERS: TOP 10 OWN ${(parseFloat(security.top_holders?.[0]?.percent || "0") * 10).toFixed(0)}% (Est).`);
+    // 2. DIRECT READ OVERRIDES (THE NEW LAYER)
+    if (directReport && directReport.contractReadable) {
+        logs.push(`> ANALYZING DIRECT BLOCKCHAIN DATA...`);
+        // Check for CRITICAL flags from Direct Report
+        const criticalFlags = directReport.securityFlags.filter(f => f.severity === 'CRITICAL');
+
+        if (criticalFlags.length > 0) {
+            score = 0; // NUCLEAR OPTION
+
+            criticalFlags.forEach(flag => {
+                logs.push(`> 🔴 DIRECT HIT: ${flag.flag} DETECTED ON-CHAIN.`);
+
+                // Override Shadow Finding with this absolute truth
+                findings.shadow = {
+                    id: `DIRECT-${flag.code}`,
+                    level: 'CRITICAL',
+                    message: isEs ? `⚠️ ${flag.flag.replace('_', ' ')}` : `⚠️ ${flag.flag.replace('_', ' ')}`,
+                    details: flag.description
+                };
+            });
+
+            // Also update Analyst/Sentinel if applicable
+            // If Zero Supply -> Analyst
+            if (criticalFlags.some(f => f.flag === 'ZERO_SUPPLY')) {
+                findings.analyst = { id: "ZERO-SUPPLY", level: "CRITICAL", message: "ZERO SUPPLY", details: "Token has 0 supply." };
+            }
+            // If Freeze -> Sentinel (override API)
+            if (criticalFlags.some(f => f.flag === 'FREEZE_AUTH_ENABLED')) {
+                findings.sentinel = { id: "DIRECT-FREEZE", level: "CRITICAL", message: "FREEZE ENABLED", details: isEs ? "Autoridad de congelación CONFIRMADA on-chain." : "Freeze Authority CONFIRMED on-chain." };
+            }
+
+        } else {
+            logs.push(`> DIRECT SCAN PASSED: NO CRITICAL FLAGS.`);
+            // Bonus for verifiable contract
+            score += 10;
+        }
     }
 
     // Final Verdict Logic
     let verdict = "NEUTRAL";
-    let riskLevel: RiskLevel = "DEGEN"; // Default middle ground
+    let riskLevel: RiskLevel = "DEGEN";
 
-    if (score >= 90) {
-        verdict = dictionary[language].verdicts.elite;
-        riskLevel = "ELITE";
-    } else if (score >= 70) {
-        verdict = dictionary[language].verdicts.safe;
-        riskLevel = "SAFE";
-    } else if (score >= 40) {
-        verdict = dictionary[language].verdicts.degen;
-        riskLevel = "DEGEN";
-    } else if (score >= 20) {
-        verdict = dictionary[language].verdicts.danger;
-        riskLevel = "DANGER";
-    } else {
-        verdict = dictionary[language].verdicts.critical;
-        riskLevel = "CRITICAL";
-    }
+    // Force CAPS based on Critical Flags
+    if (security?.is_honeypot === "1") score = 0;
+    if (directReport?.overallRisk === 'CRITICAL') score = 0;
 
-    // Agent findings overrides based on severe issues
+    if (score >= 90) { verdict = dictionary[language].verdicts.elite; riskLevel = "ELITE"; }
+    else if (score >= 70) { verdict = dictionary[language].verdicts.safe; riskLevel = "SAFE"; }
+    else if (score >= 40) { verdict = dictionary[language].verdicts.degen; riskLevel = "DEGEN"; }
+    else if (score >= 20) { verdict = dictionary[language].verdicts.danger; riskLevel = "DANGER"; }
+    else { verdict = dictionary[language].verdicts.critical; riskLevel = "CRITICAL"; }
+
+    // Double Check Critical Overrides
     if (security?.is_honeypot === "1") riskLevel = "CRITICAL";
-    if (security?.mintable === "1" && riskLevel !== "CRITICAL") riskLevel = "DANGER";
+    if (directReport?.overallRisk === 'CRITICAL') riskLevel = "CRITICAL";
 
     logs.push(`> ANALYSIS FINALIZED. SCORE: ${Math.max(0, Math.min(100, Math.floor(score)))}/100`);
 

@@ -6,7 +6,7 @@ import AgentCard from '@/components/nexus/AgentCard';
 import ProbabilityDial from '@/components/nexus/ProbabilityDial';
 import InfoModal from '@/components/nexus/InfoModal';
 import ReportModal from '@/components/nexus/ReportModal';
-import { Play, Lock, BookOpen, ExternalLink, Globe } from 'lucide-react';
+import { Play, Lock, BookOpen, ExternalLink, Globe, ShieldCheck } from 'lucide-react';
 import Image from 'next/image';
 import { nexusBrain } from '@/lib/nexus-brain';
 import { AnalysisResult } from '@/lib/nexus-types';
@@ -15,6 +15,7 @@ import TrendingTicker from '@/components/nexus/TrendingTicker';
 import CreditBalance from '@/components/nexus/CreditBalance';
 import PaymentModal from '@/components/nexus/PaymentModal';
 import LegalModal from '@/components/nexus/LegalModal';
+import SurvivalGuide from '@/components/nexus/SurvivalGuide';
 
 import { useSoundFX } from '@/hooks/useSoundFX';
 
@@ -88,10 +89,10 @@ export default function NexusPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans selection:bg-gold-primary/30 overflow-hidden relative scanlines">
+    <div className="min-h-screen bg-black text-white font-sans selection:bg-gold-primary/30 overflow-x-hidden relative scanlines">
 
       {/* Dynamic Background */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
+      <div className="fixed inset-0 z-0 pointer-events-none">
         <Image
           src="/images/nexus/motherboard-bg.png"
           alt="Nexus Motherboard"
@@ -108,7 +109,7 @@ export default function NexusPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/80 pointer-events-none"></div>
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 pt-4 pb-4 h-screen flex flex-col">
+      <div className="relative z-10 container mx-auto px-4 pt-4 pb-20 min-h-screen flex flex-col">
 
         {/* 3D Logo Header - Compact Version */}
         <header className="flex flex-col items-center mb-6 shrink-0 relative w-full max-w-6xl">
@@ -164,12 +165,38 @@ export default function NexusPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="text-xs text-gray-400 max-w-2xl mx-auto flex items-center justify-center gap-2 font-mono tracking-widest uppercase bg-black/50 backdrop-blur-sm px-4 py-1 rounded-full border border-white/10 glitch-text"
-            data-text={t('ui.subtitle')}
+            className="text-[10px] md:text-xs text-gray-400 max-w-2xl mx-auto flex items-center justify-center gap-2 font-mono tracking-widest uppercase bg-black/50 backdrop-blur-sm px-4 py-1 rounded-full border border-green-500/20 shadow-[0_0_10px_rgba(34,197,94,0.1)]"
           >
-            <Lock size={12} className="text-gold-primary" />
-            <span className="text-white">{t('ui.firewall_title')}</span> <span className="text-gray-600">|</span> <span>{t('ui.subtitle')}</span>
+            <Lock size={12} className="text-green-500" />
+            <span className="text-green-400 font-bold">{t('ui.firewall_title')}</span>
+            <span className="text-gray-600 hidden md:inline">|</span>
+            <span className="hidden md:inline">{t('ui.subtitle')}</span>
           </motion.p>
+
+          {/* SECURITY TRUST BADGE */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+            className="mt-3 flex items-center justify-center gap-2"
+          >
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded border border-white/10 text-[10px] font-mono text-gray-500 hover:text-white transition-colors cursor-help group relative">
+              <ShieldCheck size={12} className="text-blue-500" />
+              <span>INTELLIGENCE POWERED BY</span>
+              <span className="font-bold text-gray-400">RUGCHECK</span>
+              <span>&</span>
+              <span className="font-bold text-gray-400">GOPLUS</span>
+
+              {/* Tooltip */}
+              <div className="absolute top-full text-center mt-2 left-1/2 -translate-x-1/2 w-48 p-2 bg-black border border-white/20 rounded text-[9px] text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                VERIFIED SECURITY DATA PROVIDERS
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded border border-white/10 text-[10px] font-mono text-gray-500">
+              <Lock size={12} className="text-green-500" />
+              <span>SSL ENCRYPTED</span>
+            </div>
+          </motion.div>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center perspective-1000 flex-1 content-center">
@@ -187,7 +214,7 @@ export default function NexusPage() {
                 name={t('agents.analyst.name')}
                 role={t('agents.analyst.role')}
                 image="/images/nexus/agent-analyst.png"
-                id="0x71C...9A2"
+                id="********"
                 price="0.05 USDC"
                 status={analyzing ? 'analyzing' : result ? 'complete' : 'idle'}
                 finding={result?.findings.analyst}
@@ -196,7 +223,7 @@ export default function NexusPage() {
                 name={t('agents.sentinel.name')}
                 role={t('agents.sentinel.role')}
                 image="/images/nexus/agent-sentinel.png"
-                id="0x3B2...1F4"
+                id="********"
                 price="0.02 USDC"
                 status={analyzing ? 'analyzing' : result ? 'complete' : 'idle'}
                 finding={result?.findings.sentinel}
@@ -205,7 +232,7 @@ export default function NexusPage() {
                 name={t('agents.shadow.name')}
                 role={t('agents.shadow.role')}
                 image="/images/nexus/agent-shadow.png"
-                id="0x99D...E21"
+                id="********"
                 price="0.10 USDC"
                 status={analyzing ? 'analyzing' : result ? 'complete' : 'idle'}
                 finding={result?.findings.shadow}
@@ -239,6 +266,10 @@ export default function NexusPage() {
 
             {!analyzing && result === null && (
               <div className="w-full max-w-sm flex flex-col gap-4">
+                {/* Search Tip */}
+                <p className="text-[10px] md:text-xs text-center text-gray-400 mb-1 font-mono tracking-wide animate-pulse">
+                  {t('ui.search_tip')}
+                </p>
                 <input
                   type="text"
                   value={tokenInput}
@@ -317,6 +348,9 @@ export default function NexusPage() {
           </div>
         </div>
       </div>
+
+      {/* SEO Content Section */}
+      <SurvivalGuide />
 
       {/* Footer / Logs - REPLACED BY TICKER */}
       <TrendingTicker />
