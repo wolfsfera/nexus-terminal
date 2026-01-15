@@ -63,7 +63,8 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
             transaction.feePayer = publicKey;
 
             // 2. Send Transaction
-            signature = await sendTransaction(transaction, connection);
+            // skipPreflight: true helps avoid simulation errors on congested public RPCs
+            signature = await sendTransaction(transaction, connection, { skipPreflight: true });
 
             // 3. Confirm with Timeout Race
             // Mobile wallets sometimes lose websocket connection on app switch
@@ -97,9 +98,6 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
             setProcessing(false);
 
             // AGGRESSIVE OPTIMISTIC FIX:
-            // If we have a signature, the transaction was broadcasted.
-            // Regardless of the confirmation error (timeout, network dropped, etc.),
-            // we assume success to prevent user frustration (paid but no credits).
             if (signature) {
                 console.log("Tx sent but confirmation failed. Granting credits optimistically.");
                 addCredits(selectedPackage.credits);
@@ -107,7 +105,7 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                 setTimeout(() => {
                     setSuccess(false);
                     onClose();
-                }, 4000); // Little extra time to read
+                }, 4000);
                 return;
             }
 
@@ -119,7 +117,8 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
             } else if (err.message?.includes('0x0') || err.message?.includes('INSUFFICIENT_FUNDS_DETECTED')) {
                 setError("Fondos Insuficientes (Se requiere Precio + ~0.002 SOL para Gas)");
             } else {
-                setError("Fallo en la transacción. Posible congestión o fondos bajos.");
+                // Show specific error for debugging
+                setError(`Error: ${err.message ? err.message.substring(0, 50) : "Fallo desconocido"}...`);
             }
         }
     };
