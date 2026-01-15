@@ -74,6 +74,11 @@ export default function NexusPage() {
     }, 500);
 
     try {
+      // MAGIC WORD BYPASS FOR TESTING
+      if (tokenInput === 'REFUND') {
+        throw new Error("TEST_REFUND");
+      }
+
       // Call the Real Brain with Language
       const data = await nexusBrain.analyze(tokenInput, language);
 
@@ -101,13 +106,21 @@ export default function NexusPage() {
         // No sound or neutral sound
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Analysis failed", error);
       // Refund on Crash
       addCredits(1);
-      const errorMsg = language === 'es'
-        ? "> ERROR CRÍTICO. CRÉDITO DEVUELTO."
-        : "> CRITICAL ERROR. CREDIT REFUNDED.";
+
+      let errorMsg = language === 'es'
+        ? "> ERROR DE SISTEMA. CRÉDITO REEMBOLSADO."
+        : "> SYSTEM ERROR. CREDIT REFUNDED.";
+
+      if (error.message === 'TEST_REFUND') {
+        errorMsg = language === 'es'
+          ? "> PRUEBA DE REEMBOLSO EXITOSA. +1 CRÉDITO."
+          : "> REFUND TEST SUCCESS. +1 CREDIT.";
+      }
+
       setLogs(prev => [...prev, errorMsg]);
 
     } finally {
@@ -355,7 +368,13 @@ export default function NexusPage() {
                       }`}></div>
                     {result.verdict}
                   </h3>
-                  <p className="text-gray-300 text-sm">{logs[logs.length - 1]}</p>
+                  <div className="space-y-1 text-center">
+                    {logs.slice(-3).map((log, i) => (
+                      <p key={i} className={`text-xs font-mono ${log.includes("REEMBOLSADO") || log.includes("REFUNDED") ? 'text-green-400 font-bold animate-pulse' : 'text-gray-400'}`}>
+                        {log}
+                      </p>
+                    ))}
+                  </div>
                 </div>
                 <button
                   onClick={() => { playClick(); setResult(null); setLogs([]); setTokenInput(''); }}
