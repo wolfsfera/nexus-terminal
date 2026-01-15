@@ -96,17 +96,23 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
             console.error("Payment Error:", err);
             setProcessing(false);
 
+            // AGGRESSIVE OPTIMISTIC FIX:
+            // If we have a signature, the transaction was broadcasted.
+            // Regardless of the confirmation error (timeout, network dropped, etc.),
+            // we assume success to prevent user frustration (paid but no credits).
+            if (signature) {
+                console.log("Tx sent but confirmation failed. Granting credits optimistically.");
+                addCredits(selectedPackage.credits);
+                setSuccess(true);
+                setTimeout(() => {
+                    setSuccess(false);
+                    onClose();
+                }, 4000); // Little extra time to read
+                return;
+            }
+
             // Smart Error Handling - Translated
             if (err.message === "Confirmation Timeout") {
-                if (signature) {
-                    addCredits(selectedPackage.credits);
-                    setSuccess(true);
-                    setTimeout(() => {
-                        setSuccess(false);
-                        onClose();
-                    }, 3000);
-                    return;
-                }
                 setError("La red está lenta. Revisa tu wallet si se descontó el saldo.");
             } else if (err.name === 'WalletSignTransactionError' || err.message?.includes('User rejected')) {
                 setError("Pago cancelado por el usuario");
