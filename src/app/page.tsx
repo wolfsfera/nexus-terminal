@@ -30,7 +30,7 @@ export default function NexusPage() {
   const [tokenInput, setTokenInput] = useState('');
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [isLegalOpen, setIsLegalOpen] = useState(false);
-  const { spendCredits } = useCredits();
+  const { spendCredits, addCredits } = useCredits();
 
   const { playHover, playClick, playScan, playAlert, playSuccess } = useSoundFX();
 
@@ -76,11 +76,20 @@ export default function NexusPage() {
     try {
       // Call the Real Brain with Language
       const data = await nexusBrain.analyze(tokenInput, language);
-      setResult(data);
-      setLogs(prev => [...prev, ...data.logs, "> ANALYSIS COMPLETE."]);
-      setLogs(prev => [...prev, ...data.logs, "> ANALYSIS COMPLETE."]); // Update logs with full analysis history and final message
 
-      // Voice Verdict
+      // AUTO-REFUND LOGIC (Fair Play)
+      if (data.findings.analyst.id === 'ERR') {
+        addCredits(1);
+        const refundMsg = language === 'es'
+          ? "> ERROR: TOKEN INVALIDO. CRÉDITO REEMBOLSADO."
+          : "> ERROR: INVALID TOKEN. CREDIT REFUNDED.";
+        data.logs.push(refundMsg);
+      }
+
+      setResult(data);
+      setLogs(data.logs); // Update logs with full analysis history
+
+      // Voice Verdict (After result is set)
       if (data.riskLevel === 'CRITICAL') {
         playAlert();
       } else if (data.riskLevel === 'SAFE') {
