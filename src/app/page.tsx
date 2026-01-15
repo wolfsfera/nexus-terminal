@@ -77,12 +77,15 @@ export default function NexusPage() {
       // Call the Real Brain with Language
       const data = await nexusBrain.analyze(tokenInput, language);
 
+      // DEBUG LOG
+      // data.logs.push(`> DEBUG ID: ${data.findings.analyst.id}`);
+
       // AUTO-REFUND LOGIC (Fair Play)
       if (data.findings.analyst.id === 'ERR') {
         addCredits(1);
         const refundMsg = language === 'es'
-          ? "> ERROR: TOKEN INVALIDO. CRÉDITO REEMBOLSADO."
-          : "> ERROR: INVALID TOKEN. CREDIT REFUNDED.";
+          ? "> ERROR: NO ENCONTRADO. CRÉDITO DEVUELTO."
+          : "> ERROR: NOT FOUND. CREDIT REFUNDED.";
         data.logs.push(refundMsg);
       }
 
@@ -103,8 +106,8 @@ export default function NexusPage() {
       // Refund on Crash
       addCredits(1);
       const errorMsg = language === 'es'
-        ? "> ERROR DE SISTEMA. CRÉDITO REEMBOLSADO."
-        : "> SYSTEM ERROR. CREDIT REFUNDED.";
+        ? "> ERROR CRÍTICO. CRÉDITO DEVUELTO."
+        : "> CRITICAL ERROR. CREDIT REFUNDED.";
       setLogs(prev => [...prev, errorMsg]);
 
     } finally {
