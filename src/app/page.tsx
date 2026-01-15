@@ -78,6 +78,7 @@ export default function NexusPage() {
       const data = await nexusBrain.analyze(tokenInput, language);
       setResult(data);
       setLogs(prev => [...prev, ...data.logs, "> ANALYSIS COMPLETE."]);
+      setLogs(prev => [...prev, ...data.logs, "> ANALYSIS COMPLETE."]); // Update logs with full analysis history and final message
 
       // Voice Verdict
       if (data.riskLevel === 'CRITICAL') {
@@ -90,6 +91,12 @@ export default function NexusPage() {
 
     } catch (error) {
       console.error("Analysis failed", error);
+      // Refund on Crash
+      addCredits(1);
+      const errorMsg = language === 'es'
+        ? "> ERROR DE SISTEMA. CRÉDITO REEMBOLSADO."
+        : "> SYSTEM ERROR. CREDIT REFUNDED.";
+      setLogs(prev => [...prev, errorMsg]);
 
     } finally {
       setAnalyzing(false);
