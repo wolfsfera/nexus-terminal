@@ -61,16 +61,24 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
             transaction.recentBlockhash = blockhash;
             transaction.feePayer = publicKey;
 
-            // 2. Send and Confirm
+            // 2. Send Transaction
             const signature = await sendTransaction(transaction, connection);
 
-            const confirmation = await connection.confirmTransaction({
+            // 3. Confirm with Timeout Race
+            // Mobile wallets sometimes lose websocket connection on app switch
+            const confirmationPromise = connection.confirmTransaction({
                 signature,
                 blockhash,
                 lastValidBlockHeight
             }, 'confirmed');
 
-            if (confirmation.value.err) {
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error("Confirmation Timeout")), 60000)
+            );
+
+            const confirmation = await Promise.race([confirmationPromise, timeoutPromise]) as any;
+
+            if (confirmation.value?.err) {
                 throw new Error("Transaction Failed on-chain");
             }
 
@@ -85,16 +93,20 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
 
         } catch (err: any) {
             console.error("Payment Error:", err);
+            setProcessing(false);
 
             // Smart Error Handling - Translated
-            if (err.name === 'WalletSignTransactionError' || err.message?.includes('User rejected')) {
+            if (err.message === "Confirmation Timeout") {
+                // Don't show error, just warn. It might have gone through.
+                setError("La red está lenta. Revisa tu wallet si se descontó el saldo.");
+                // We keep 'processing' false so they can try again or close.
+            } else if (err.name === 'WalletSignTransactionError' || err.message?.includes('User rejected')) {
                 setError("Pago cancelado por el usuario");
             } else if (err.message?.includes('0x0') || err.message?.includes('INSUFFICIENT_FUNDS_DETECTED')) {
                 setError("Fondos Insuficientes (Se requiere Precio + ~0.002 SOL para Gas)");
             } else {
                 setError("Fallo en la transacción. Posible congestión o fondos bajos.");
             }
-            setProcessing(false);
         }
     };
 
