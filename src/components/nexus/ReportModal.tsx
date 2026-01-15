@@ -122,7 +122,7 @@ export default function ReportModal({ isOpen, onClose, result, onTopUp }: Report
                             {/* This is now FIRST so users see the Lock/Paywall immediately */}
                             <div className="relative order-1">
 
-                                <div className={`transition-all duration-500 ${!isSubscribed ? 'blur-lg opacity-50 select-none pointer-events-none' : 'blur-0 opacity-100'}`}>
+                                <div className={`transition-all duration-500`}>
 
                                     {/* VERDICT & SCORE (Moved inside Premium visual block) */}
                                     <div className={`p-8 rounded-2xl border-2 flex flex-col md:flex-row items-center justify-between gap-8 mb-10 ${result.riskLevel === 'ELITE' ? 'bg-purple-500/10 border-purple-500/50' :
@@ -197,43 +197,8 @@ export default function ReportModal({ isOpen, onClose, result, onTopUp }: Report
 
                                 </div>
 
-                                {/* LOCK / DECRYPT OVERLAY */}
-                                {!isSubscribed && (
-                                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center pt-20">
-
-                                        {isUnlocking ? (
-                                            <motion.div
-                                                initial={{ scale: 0.9, opacity: 0 }}
-                                                animate={{ scale: 1, opacity: 1 }}
-                                                className="bg-black/90 backdrop-blur-xl border border-green-500/50 p-8 rounded-2xl flex flex-col items-center text-center max-w-md shadow-[0_0_50px_rgba(34,197,94,0.3)]"
-                                            >
-                                                <div className="w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-                                                <h3 className="text-2xl font-black text-green-500 mb-2 animate-pulse">DECRYPTING...</h3>
-                                                <p className="text-gray-400 font-mono text-xs">
-                                                    EXTRACTING ON-CHAIN METADATA...
-                                                </p>
-                                            </motion.div>
-                                        ) : (
-                                            <motion.div
-                                                initial={{ scale: 0.9 }} animate={{ scale: 1 }}
-                                                className="bg-black/80 backdrop-blur-xl border border-gold-primary/50 p-8 rounded-2xl flex flex-col items-center text-center max-w-md shadow-[0_0_50px_rgba(212,175,55,0.2)]"
-                                            >
-                                                <Lock size={40} className="text-gold-primary mb-4 animate-bounce" />
-                                                <h3 className="text-2xl font-black text-white mb-2">CLASSIFIED INTEL</h3>
-                                                <p className="text-gray-400 mb-6 text-sm">
-                                                    The <strong>Risk Score</strong>, <strong>Agent Findings</strong>, and <strong>Social Sentiment</strong> are encrypted.
-                                                </p>
-                                                <button
-                                                    onClick={handleSubscribe}
-                                                    className={`bg-gold-primary text-black text-lg font-bold px-8 py-3 rounded-full hover:scale-105 hover:bg-white transition-all shadow-lg flex items-center gap-2 ${confirming ? 'animate-pulse bg-red-500 text-white' : ''}`}
-                                                >
-                                                    {confirming ? "CONFIRM?" : "DECRYPT INTEL"} <span className="bg-green-500/20 text-green-400 px-2 py-0.5 rounded text-xs ml-2">INCLUDED</span>
-                                                </button>
-                                            </motion.div>
-                                        )}
-
-                                    </div>
-                                )}
+                                {/* LOCK REMOVED - CONTENT IS FREE */}
+                                <div className="absolute inset-x-0 bottom-0 h-2 bg-gradient-to-t from-black/50 to-transparent pointer-events-none"></div>
                             </div>
 
                             {/* DISCLAIMER FOOTER (Moved Up) */}

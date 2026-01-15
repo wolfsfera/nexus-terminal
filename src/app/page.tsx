@@ -299,7 +299,10 @@ export default function NexusPage() {
                 >
                   <div className="absolute inset-0 bg-white/20 translate-y-full hover:translate-y-0 transition-transform duration-300"></div>
                   <Play fill={!tokenInput ? 'gray' : 'black'} size={20} />
-                  <span className="tracking-wider">{t('ui.analyze_btn')}</span>
+                  <span className="tracking-wider flex flex-col items-start leading-none">
+                    <span>{t('ui.analyze_btn')}</span>
+                    <span className="text-[10px] opacity-70">COST: 1 CREDIT</span>
+                  </span>
                 </motion.button>
               </div>
             )}
@@ -343,14 +346,15 @@ export default function NexusPage() {
                 </button>
 
                 <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onMouseEnter={playHover}
                   onClick={() => { playClick(); setIsReportOpen(true); }}
-                  className="w-full py-3 bg-white/5 border border-white/10 hover:bg-gold-primary/10 hover:border-gold-primary/30 text-gold-primary rounded-xl flex items-center justify-center gap-2 transition-all group"
+                  className="w-full py-4 bg-gold-primary/20 border border-gold-primary text-gold-primary rounded-xl flex items-center justify-center gap-2 transition-all group shadow-[0_0_30px_rgba(212,175,55,0.3)] animate-pulse hover:animate-none"
                 >
-                  <span className="text-xs font-bold tracking-widest">VIEW FULL INTELLIGENCE REPORT</span>
-                  <ExternalLink size={14} className="group-hover:translate-x-1 transition-transform" />
+                  <ShieldCheck size={20} className="animate-bounce" />
+                  <span className="text-sm font-black tracking-widest uppercase">>>> ACCESS CLASSIFIED REPORT ({result.riskLevel}) {"<<<"}</span>
+                  <ExternalLink size={16} className="group-hover:translate-x-1 transition-transform" />
                 </motion.button>
               </motion.div>
             )}
