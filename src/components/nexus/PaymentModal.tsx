@@ -45,6 +45,7 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
 
         setProcessing(true);
         setError(null);
+        let signature = "";
 
         try {
             // 1. Get Fresh Blockhash
@@ -62,7 +63,7 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
             transaction.feePayer = publicKey;
 
             // 2. Send Transaction
-            const signature = await sendTransaction(transaction, connection);
+            signature = await sendTransaction(transaction, connection);
 
             // 3. Confirm with Timeout Race
             // Mobile wallets sometimes lose websocket connection on app switch
@@ -97,9 +98,16 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
 
             // Smart Error Handling - Translated
             if (err.message === "Confirmation Timeout") {
-                // Don't show error, just warn. It might have gone through.
+                if (signature) {
+                    addCredits(selectedPackage.credits);
+                    setSuccess(true);
+                    setTimeout(() => {
+                        setSuccess(false);
+                        onClose();
+                    }, 3000);
+                    return;
+                }
                 setError("La red está lenta. Revisa tu wallet si se descontó el saldo.");
-                // We keep 'processing' false so they can try again or close.
             } else if (err.name === 'WalletSignTransactionError' || err.message?.includes('User rejected')) {
                 setError("Pago cancelado por el usuario");
             } else if (err.message?.includes('0x0') || err.message?.includes('INSUFFICIENT_FUNDS_DETECTED')) {
