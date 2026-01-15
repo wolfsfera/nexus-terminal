@@ -70,6 +70,24 @@ export default function LegalModal({ isOpen, onClose }: LegalModalProps) {
                                 </p>
                             </section>
 
+                            <section>
+                                <h3 className="text-white font-bold flex items-center gap-2 mb-2">
+                                    <ShieldAlert size={16} className="text-gold-primary" /> 4. ABSOLUTE PRIVACY POLICY
+                                </h3>
+                                <p className="opacity-80">
+                                    Wolfsfera Nexus is a decentralized, client-side tool. <strong>We DO NOT store or track your wallet data, transaction history, or personal information on any server.</strong> All data (such as credit balance) is stored locally on your device (LocalStorage). Your privacy is absolute.
+                                </p>
+                            </section>
+
+                            <section>
+                                <h3 className="text-white font-bold flex items-center gap-2 mb-2">
+                                    <ShieldAlert size={16} className="text-gold-primary" /> 5. FAIR USE & REFUNDS
+                                </h3>
+                                <p className="opacity-80">
+                                    <strong>Credits are only deducted for successful analyses.</strong> If the scanner cannot find a token ("Ghost Token") or if an error occurs, the credit is automatically refunded to your balance. Purchase of Credit Packs with SOL is final and non-refundable on the blockchain.
+                                </p>
+                            </section>
+
                             <div className="bg-white/5 p-4 rounded border border-white/10 mt-8 text-xs text-center">
                                 <p>BY USING THIS INTERFACE, YOU AGREE TO HOLD THE CREATORS AND DEVELOPERS HARMLESS FROM ANY CLAIMS OR DAMAGES.</p>
                             </div>

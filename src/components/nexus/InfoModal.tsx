@@ -220,7 +220,37 @@ export default function InfoModal({ isOpen, onClose }: InfoModalProps) {
                                             </p>
                                         </div>
 
-                                        {/* Section 7: Usage Example (Moved down) */}
+                                        {/* Section 7: Human Support */}
+                                        <div className="space-y-4 pt-6 text-left">
+                                            <div className="flex items-center gap-3 text-green-400 border-b border-white/10 pb-3">
+                                                <Zap size={20} />
+                                                <h3 className="text-xl font-bold">7. Soporte Humano (Direct Uplink)</h3>
+                                            </div>
+                                            <p className="text-gray-400 text-sm leading-relaxed mb-4">
+                                                ¿Tienes problemas con un pago o has encontrado un error en la Matrix? Contacta directamente con el comando central.
+                                            </p>
+                                            <div className="flex flex-col sm:flex-row gap-4">
+                                                <a
+                                                    href="https://wa.me/34667400799"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex-1 bg-green-900/20 border border-green-500/50 hover:bg-green-500/20 text-green-400 p-4 rounded-xl flex items-center justify-center gap-3 transition-all group"
+                                                >
+                                                    {/* WhatsApp Icon SVG directly to avoid import issues if Lucide doesn't have it or for custom styling */}
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-message-circle"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /></svg>
+                                                    <span className="font-bold">WHATSAPP SUPPORT</span>
+                                                </a>
+                                                <a
+                                                    href="mailto:adnwolf@wolfsfera.com"
+                                                    className="flex-1 bg-blue-900/20 border border-blue-500/50 hover:bg-blue-500/20 text-blue-400 p-4 rounded-xl flex items-center justify-center gap-3 transition-all group"
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-mail"><rect width="20" height="16" x="2" y="4" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>
+                                                    <span className="font-bold">EMAIL SUPPORT</span>
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                        {/* Usage Example */}
                                         <div className="bg-gold-primary/10 border border-gold-primary/30 p-4 rounded-xl mt-8">
                                             <h4 className="text-gold-primary font-bold mb-2 text-sm">⚔️ EJEMPLO DE MISIÓN:</h4>
                                             <ol className="text-xs text-gray-300 space-y-2 font-mono list-decimal pl-4">
