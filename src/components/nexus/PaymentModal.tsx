@@ -25,23 +25,25 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
     const { addCredits } = useCredits();
     const { connection } = useConnection();
     const { publicKey, sendTransaction } = useWallet();
-    const [processing, setProcessing] = useState<number | null>(null);
+    const [processing, setProcessing] = useState<boolean>(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [selectedPackage, setSelectedPackage] = useState<typeof PACKAGES[0] | null>(null);
 
     // Reset state on close
     useEffect(() => {
         if (!isOpen) {
-            setProcessing(null);
+            setProcessing(false);
             setError(null);
             setSuccess(false);
+            setSelectedPackage(null);
         }
     }, [isOpen]);
 
-    const handlePayment = async (pkgId: number, credits: number, priceSol: number) => {
-        if (!publicKey) return;
+    const handleConfirmPayment = async () => {
+        if (!publicKey || !selectedPackage) return;
 
-        setProcessing(pkgId);
+        setProcessing(true);
         setError(null);
 
         try {
@@ -52,7 +54,7 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                 SystemProgram.transfer({
                     fromPubkey: publicKey,
                     toPubkey: MERCHANT_WALLET,
-                    lamports: priceSol * LAMPORTS_PER_SOL,
+                    lamports: selectedPackage.price * LAMPORTS_PER_SOL,
                 })
             );
 
@@ -66,20 +68,20 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                 signature,
                 blockhash,
                 lastValidBlockHeight
-            }, 'confirmed'); // 'confirmed' is safer than 'processed' for payments
+            }, 'confirmed');
 
             if (confirmation.value.err) {
                 throw new Error("Transaction Failed on-chain");
             }
 
             // SUCCESS
-            addCredits(credits);
-            setProcessing(null);
+            addCredits(selectedPackage.credits);
+            setProcessing(false);
             setSuccess(true);
             setTimeout(() => {
                 setSuccess(false);
                 onClose();
-            }, 2000);
+            }, 3000);
 
         } catch (err: any) {
             console.error("Payment Error:", err);
@@ -92,7 +94,7 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
             } else {
                 setError("Fallo en la transacción. Posible congestión o fondos bajos.");
             }
-            setProcessing(null);
+            setProcessing(false);
         }
     };
 
@@ -151,13 +153,56 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                                 <p className="text-gray-400 font-mono">CRÉDITOS AÑADIDOS A TU CUENTA</p>
                                 <p className="text-xs text-purple-400 mt-4 opacity-70 break-all px-8">TX VERIFICADA ON-CHAIN</p>
                             </div>
+                        ) : selectedPackage ? (
+                            // CONFIRMATION VIEW
+                            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                                <div className="bg-purple-900/20 border border-purple-500/30 p-6 rounded-2xl text-center">
+                                    <p className="text-gray-400 text-sm font-mono mb-2">ESTÁS COMPRANDO</p>
+                                    <div className="text-3xl font-black text-white mb-1">{selectedPackage.credits} CRÉDITOS</div>
+                                    <div className="text-purple-400 font-bold tracking-widest">{selectedPackage.label}</div>
+                                </div>
+
+                                <div className="flex justify-between items-center px-4 py-3 bg-white/5 rounded-xl border border-white/10">
+                                    <span className="text-gray-400 text-sm">Total a Pagar:</span>
+                                    <span className="text-xl font-bold text-white font-mono">{selectedPackage.price} SOL</span>
+                                </div>
+
+                                {error && (
+                                    <div className="bg-red-900/50 border border-red-500/50 text-red-200 text-xs p-3 rounded text-center font-bold">
+                                        ⚠️ {error}
+                                    </div>
+                                )}
+
+                                <div className="grid grid-cols-2 gap-4 pt-2">
+                                    <button
+                                        onClick={() => { setError(null); setSelectedPackage(null); }}
+                                        className="p-4 rounded-xl border border-white/10 hover:bg-white/10 text-gray-400 font-bold transition-colors"
+                                    >
+                                        CANCELAR
+                                    </button>
+                                    <button
+                                        onClick={handleConfirmPayment}
+                                        disabled={processing}
+                                        className="p-4 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold transition-colors flex justify-center items-center gap-2 shadow-[0_0_20px_rgba(168,85,247,0.4)] disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {processing ? (
+                                            <>
+                                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                PROCESANDO...
+                                            </>
+                                        ) : (
+                                            <>CONFIRMAR PAGO <Zap size={18} /></>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
                         ) : (
+                            // SELECTION VIEW
                             <div className="space-y-4">
                                 {PACKAGES.map((pkg) => (
                                     <button
                                         key={pkg.id}
-                                        onClick={() => handlePayment(pkg.id, pkg.credits, pkg.price)}
-                                        disabled={processing !== null}
+                                        onClick={() => setSelectedPackage(pkg)}
                                         className={`w-full p-4 rounded-xl border flex items-center justify-between group transition-all relative overflow-hidden cursor-pointer active:scale-[0.98] ${pkg.popular
                                             ? 'bg-purple-900/10 border-purple-500/50'
                                             : 'bg-white/5 border-white/10'
@@ -177,19 +222,10 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
 
                                         <div className="relative z-10 flex items-center gap-3">
                                             <div className="text-xl font-bold text-white">{pkg.price} SOL</div>
-                                            {processing === pkg.id ? (
-                                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                            ) : (
-                                                <CreditCard size={18} className="text-gray-500 group-hover:text-white transition-colors" />
-                                            )}
+                                            <CreditCard size={18} className="text-gray-500 group-hover:text-white transition-colors" />
                                         </div>
                                     </button>
                                 ))}
-                                {error && (
-                                    <div className="bg-red-900/50 border border-red-500/50 text-red-200 text-xs p-3 rounded text-center font-bold">
-                                        ⚠️ {error}
-                                    </div>
-                                )}
                                 <p className="text-center text-[10px] text-gray-600 font-mono pt-4 uppercase">
                                     Fondos enviados directamente a la Wallet del Mercader.
                                 </p>
