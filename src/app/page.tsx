@@ -16,6 +16,7 @@ import TrendingTicker from '@/components/nexus/TrendingTicker';
 import CreditBalance from '@/components/nexus/CreditBalance';
 import PaymentModal from '@/components/nexus/PaymentModal';
 import LegalModal from '@/components/nexus/LegalModal';
+import SupportWidget from '@/components/nexus/SupportWidget';
 import SurvivalGuide from '@/components/nexus/SurvivalGuide';
 
 import { useSoundFX } from '@/hooks/useSoundFX';
@@ -426,6 +427,7 @@ export default function NexusPage() {
       />
       <PaymentModal isOpen={isPaymentOpen} onClose={() => setIsPaymentOpen(false)} />
       <LegalModal isOpen={isLegalOpen} onClose={() => setIsLegalOpen(false)} />
+      <SupportWidget />
     </div>
   );
 }
