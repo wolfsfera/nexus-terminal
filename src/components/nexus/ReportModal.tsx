@@ -25,35 +25,20 @@ export default function ReportModal({ isOpen, onClose, result, onTopUp }: Report
     const handleSubscribe = () => {
         if (isSubscribed) return;
 
-        // Confirmation Step
-        if (!confirming) {
-            playClick();
-            setConfirming(true);
-            setTimeout(() => setConfirming(false), 3000); // Reset after 3s if no confirm
-            return;
-        }
+        // Confirmation Step NO LONGER NEEDED for free reveal, can just open
+        // But keeping visual confirmation for drama/effect if desired?
+        // Let's make it direct click -> decrypt animation (Free)
 
         playClick();
+        setIsUnlocking(true);
+        setConfirming(false);
 
-        // 1. Check if user has enough credits
-        if (balance > 0) {
-            // 2. Start Decryption Sequence
-            const success = spendCredits(1);
-            if (success) {
-                setIsUnlocking(true);
-                setConfirming(false);
-                // Simulate "Heavy Decryption" process
-                setTimeout(() => {
-                    playSuccess(); // BINGO SOUND
-                    setIsUnlocking(false);
-                    setIsSubscribed(true);
-                }, 2000);
-            }
-        } else {
-            // 3. No credits? Redirect to Payment Gateway
-            playAlert(); // Access Denied Sound
-            onTopUp(); // Open PaymentModal
-        }
+        // Simulate "Heavy Decryption" process (Visual only, no cost)
+        setTimeout(() => {
+            playSuccess(); // BINGO SOUND
+            setIsUnlocking(false);
+            setIsSubscribed(true);
+        }, 1500); // Slightly faster reveal
     };
 
     if (!result) return null;
@@ -242,7 +227,7 @@ export default function ReportModal({ isOpen, onClose, result, onTopUp }: Report
                                                     onClick={handleSubscribe}
                                                     className={`bg-gold-primary text-black text-lg font-bold px-8 py-3 rounded-full hover:scale-105 hover:bg-white transition-all shadow-lg flex items-center gap-2 ${confirming ? 'animate-pulse bg-red-500 text-white' : ''}`}
                                                 >
-                                                    {confirming ? "CONFIRM SPEND?" : "UNLOCK REPORT"} <span className="bg-black/20 px-2 py-0.5 rounded text-xs ml-2">1 CREDIT</span>
+                                                    {confirming ? "CONFIRM?" : "DECRYPT INTEL"} <span className="bg-green-500/20 text-green-400 px-2 py-0.5 rounded text-xs ml-2">INCLUDED</span>
                                                 </button>
                                             </motion.div>
                                         )}
