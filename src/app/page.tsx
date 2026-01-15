@@ -353,7 +353,7 @@ export default function NexusPage() {
                   className="w-full py-4 bg-gold-primary/20 border border-gold-primary text-gold-primary rounded-xl flex items-center justify-center gap-2 transition-all group shadow-[0_0_30px_rgba(212,175,55,0.3)] animate-pulse hover:animate-none"
                 >
                   <ShieldCheck size={20} className="animate-bounce" />
-                  <span className="text-sm font-black tracking-widest uppercase">>>> ACCESS CLASSIFIED REPORT ({result.riskLevel}) {"<<<"}</span>
+                  <span className="text-sm font-black tracking-widest uppercase">&gt;&gt;&gt; ACCESS CLASSIFIED REPORT ({result.riskLevel}) &lt;&lt;&lt;</span>
                   <ExternalLink size={16} className="group-hover:translate-x-1 transition-transform" />
                 </motion.button>
               </motion.div>
