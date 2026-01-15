@@ -282,7 +282,8 @@ export default function NexusPage() {
           </div>
 
           {/* Center Column: Dial & Action - Compact */}
-          <div className={`lg:col-span-2 border transition-all duration-1000 rounded-3xl p-6 backdrop-blur-md shadow-2xl relative overflow-hidden group h-full max-h-[500px] flex flex-col items-center justify-center ${result?.riskLevel === 'CRITICAL' ? 'bg-red-950/30 border-red-500/30 shadow-red-900/20' :
+          {/* Center Column: Dial & Action - Expanded for Mobile */}
+          <div className={`lg:col-span-2 border transition-all duration-1000 rounded-3xl p-6 pb-16 backdrop-blur-md shadow-2xl relative group h-full min-h-[500px] flex flex-col items-center justify-center ${result?.riskLevel === 'CRITICAL' ? 'bg-red-950/30 border-red-500/30 shadow-red-900/20' :
             result?.riskLevel === 'SAFE' ? 'bg-green-950/30 border-green-500/30 shadow-green-900/20' :
               'bg-black/40 border-white/10'
             }`}>

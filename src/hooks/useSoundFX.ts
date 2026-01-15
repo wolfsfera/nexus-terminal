@@ -27,22 +27,22 @@ export const useSoundFX = () => {
     const playHover = () => playTone(800, 'sine', 0.05, 0.02);
     const playClick = () => playTone(1200, 'square', 0.05, 0.05);
     const playScan = () => {
-        // Complex scan sound
+        // RADICAL CHANGE: Ultra-clean high-tech blip (No reverb/low freq)
         const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
 
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(100, ctx.currentTime);
-        osc.frequency.linearRampToValueAtTime(800, ctx.currentTime + 0.5); // Sweep up
+        osc.type = 'triangle'; // Crisper than sine, cleaner than saw
+        osc.frequency.setValueAtTime(1500, ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(2000, ctx.currentTime + 0.1);
 
-        gain.gain.setValueAtTime(0.05, ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.5);
+        gain.gain.setValueAtTime(0.03, ctx.currentTime); // Lower volume (high pitch cuts through)
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
 
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start();
-        osc.stop(ctx.currentTime + 0.5);
+        osc.stop(ctx.currentTime + 0.1);
     };
 
     const playAlert = () => {
