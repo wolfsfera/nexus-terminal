@@ -376,10 +376,25 @@ export default function NexusPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="space-y-6 w-full max-w-md"
               >
-                <div className={`p-6 border rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.2)] ${result.riskLevel === 'SAFE' ? 'bg-green-500/10 border-green-500/30' :
+                <div className={`p-6 border rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.2)] relative overflow-hidden ${result.riskLevel === 'SAFE' ? 'bg-green-500/10 border-green-500/30' :
                   result.riskLevel === 'CRITICAL' ? 'bg-red-500/10 border-red-500/30' :
                     'bg-yellow-500/10 border-yellow-500/30'
                   }`}>
+
+                  {/* 🌊 WATERMARK (Wolfsfera Brand) */}
+                  <div className="absolute right-[-20px] bottom-[-20px] opacity-[0.08] pointer-events-none z-0">
+                    <Image
+                      src="/images/nexus/logo-3d.png"
+                      alt="Watermark"
+                      width={200}
+                      height={200}
+                      className="object-contain" // removed grayscale to keep golden brand feel, or use grayscale if preferred
+                    />
+                  </div>
+                  {/* Watermark Label */}
+                  <div className="absolute bottom-2 right-4 text-[10px] font-mono text-white/10 pointer-events-none z-0 tracking-widest">
+                    POWERED BY WOLFSFERA
+                  </div>
 
                   {/* RISK LEVEL STAMP (NEW) */}
                   <div className="flex justify-center mb-3">
