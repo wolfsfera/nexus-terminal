@@ -87,24 +87,24 @@ export default function InfoModal({ isOpen, onClose }: InfoModalProps) {
                                             </p>
                                             <ul className="space-y-3 mt-4">
                                                 <li className="flex items-center gap-3 text-sm">
-                                                    <span className="text-purple-400">💎 ELITE</span>
-                                                    <span className="text-gray-500">- La "Alpha" perfecta. Liquidez bloqueada, auditada, sin riesgo.</span>
+                                                    <span className="text-purple-400 font-black">💎 ELITE (90-100)</span>
+                                                    <span className="text-gray-500">- <strong>JOYA OCULTA.</strong> Mejor que Safe. Auditoría perfecta + Métricas alcistas.</span>
                                                 </li>
                                                 <li className="flex items-center gap-3 text-sm">
-                                                    <span className="text-green-500">🛡️ SAFE</span>
-                                                    <span className="text-gray-500">- Consenso positivo. Zona de entrada estándar.</span>
+                                                    <span className="text-green-500 font-bold">🛡️ SAFE (70-89)</span>
+                                                    <span className="text-gray-500">- PROYECTO SÓLIDO. Sano, sin riesgos críticos, buen volumen.</span>
                                                 </li>
                                                 <li className="flex items-center gap-3 text-sm">
-                                                    <span className="text-yellow-500">⚠️ DEGEN</span>
-                                                    <span className="text-gray-500">- Alto riesgo / High Reward. Solo para expertos en volatilidad.</span>
+                                                    <span className="text-yellow-500 font-bold">⚠️ DEGEN (40-69)</span>
+                                                    <span className="text-gray-500">- APUESTA ARRIESGADA. Puede hacer un x100 o irse a cero. Volátil.</span>
                                                 </li>
                                                 <li className="flex items-center gap-3 text-sm">
-                                                    <span className="text-orange-500">☣️ DANGER</span>
-                                                    <span className="text-gray-500">- Banderas rojas graves (Mint Authority, Holders concentrados).</span>
+                                                    <span className="text-orange-500 font-bold">☣️ DANGER (20-39)</span>
+                                                    <span className="text-gray-500">- PELIGRO REAL. Banderas rojas (Mint Authority, Top Holders sospechosos).</span>
                                                 </li>
                                                 <li className="flex items-center gap-3 text-sm">
-                                                    <span className="text-red-500">☠️ CRITICAL</span>
-                                                    <span className="text-gray-500">- ESTAFA CONFIRMADA. Honeypot o Rug Pull inminente.</span>
+                                                    <span className="text-red-500 font-black">☠️ CRITICAL (0-19)</span>
+                                                    <span className="text-gray-500">- ESTAFA / RUG PULL. Sal de ahí inmediatamente.</span>
                                                 </li>
                                             </ul>
                                         </div>
