@@ -45,11 +45,13 @@ export default function NexusPage() {
 
     // Assuming isValidSolanaAddress and playError are defined elsewhere or will be added by the user.
     // For now, let's mock them to avoid compilation errors if they are not present in the original file.
-    const isValidSolanaAddress = (address: string) => address.length > 30; // Placeholder
-    const playError = () => playAlert(); // Placeholder, using existing sound
+    // Updated to allow Tickers (short names) for testing/demo purposes
+    const isValidSolanaAddress = (address: string) => address.length > 1;
+    const playError = () => playAlert();
 
     if (!isValidSolanaAddress(tokenInput)) {
-      setLogs(prev => [...prev, "> ERROR: INVALID SOLANA ADDRESS DETECTED"]);
+      setLogs(prev => [...prev, "> ERROR: INPUT TOO SHORT"]);
+      playError(); // Now allows sound feedback
       return;
     }
 
