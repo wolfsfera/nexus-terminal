@@ -265,7 +265,18 @@ export default function ReportModal({ isOpen, onClose, result, onTopUp }: Report
                                             'bg-red-500/10 border-red-500/50'
                                 }`}>
                                 <div className="flex-1">
-                                    <h4 className="text-sm font-mono uppercase tracking-widest opacity-70 mb-2">{t('report.verdict_header')}</h4>
+                                    <h4 className="text-sm font-mono uppercase tracking-widest opacity-70 mb-2 flex items-center gap-3">
+                                        {t('report.verdict_header')}
+                                        {/* RISK LEVEL STAMP */}
+                                        <span className={`px-3 py-0.5 rounded-full text-xs font-black border tracking-wider ${result.riskLevel === 'ELITE' ? 'bg-purple-500 text-black border-purple-400' :
+                                            result.riskLevel === 'SAFE' ? 'bg-green-500 text-black border-green-400' :
+                                                result.riskLevel === 'DEGEN' ? 'bg-yellow-500 text-black border-yellow-400' :
+                                                    result.riskLevel === 'DANGER' ? 'bg-orange-500 text-black border-orange-400' :
+                                                        'bg-red-600 text-white border-red-500'
+                                            }`}>
+                                            {result.riskLevel}
+                                        </span>
+                                    </h4>
                                     <div className={`text-4xl md:text-5xl font-black uppercase leading-none mb-2 ${result.riskLevel === 'ELITE' ? 'text-purple-400 drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]' :
                                         result.riskLevel === 'SAFE' ? 'text-green-500' :
                                             result.riskLevel === 'DEGEN' ? 'text-yellow-400' :
@@ -278,25 +289,46 @@ export default function ReportModal({ isOpen, onClose, result, onTopUp }: Report
                                         {t(`descriptions.${result.riskLevel.toLowerCase()}`)}
                                     </p>
 
-                                    {/* VISUAL BADGES (NEW) */}
-                                    <div className="flex flex-wrap gap-2">
-                                        {findingsList.map((f, i) => (
-                                            <div key={i} className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${f.level === 'ELITE' || f.level === 'SAFE' ? 'bg-green-500/10 border-green-500/30 text-green-400' :
-                                                f.level === 'DEGEN' ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500' :
-                                                    'bg-red-500/10 border-red-500/30 text-red-500'
-                                                }`}>
-                                                {f.message}
-                                            </div>
-                                        ))}
-                                    </div>
+                                    {/* (Badges moved to right column) */}
                                 </div>
 
                                 <div className="flex flex-col items-center gap-4 min-w-[200px]">
-                                    <div className="text-6xl font-black text-white font-mono">{result.score}</div>
-                                    <div className="text-xs uppercase tracking-widest text-gray-500">{t('report.score_label')}</div>
+                                    <div className="text-6xl font-black text-white font-mono leading-none">{result.score}</div>
+                                    <div className="text-xs uppercase tracking-widest text-gray-500 mb-2">{t('report.score_label')}</div>
+
+                                    {/* TOP 3 MOTIVES (UNDER SCORE) */}
+                                    <div className="w-full space-y-2 mb-2">
+                                        {/* 1. LIQUIDITY */}
+                                        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[10px] font-bold uppercase tracking-wide ${result.findings.analyst.level === 'ELITE' || result.findings.analyst.level === 'SAFE' ? 'bg-green-500/20 border-green-500/30 text-green-300' :
+                                            result.findings.analyst.level === 'DEGEN' ? 'bg-yellow-500/20 border-yellow-500/30 text-yellow-300' :
+                                                'bg-red-500/20 border-red-500/30 text-red-300'
+                                            }`}>
+                                            <DollarSign size={12} strokeWidth={3} />
+                                            <span className="truncate">{result.findings.analyst.message}</span>
+                                        </div>
+
+                                        {/* 2. VOLUME */}
+                                        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[10px] font-bold uppercase tracking-wide ${result.findings.sentinel.level === 'ELITE' || result.findings.sentinel.level === 'SAFE' ? 'bg-green-500/20 border-green-500/30 text-green-300' :
+                                            result.findings.sentinel.level === 'DEGEN' ? 'bg-yellow-500/20 border-yellow-500/30 text-yellow-300' :
+                                                'bg-red-500/20 border-red-500/30 text-red-300'
+                                            }`}>
+                                            <Activity size={12} strokeWidth={3} />
+                                            <span className="truncate">{result.findings.sentinel.message}</span>
+                                        </div>
+
+                                        {/* 3. ON-CHAIN */}
+                                        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[10px] font-bold uppercase tracking-wide ${result.findings.shadow.level === 'ELITE' || result.findings.shadow.level === 'SAFE' ? 'bg-green-500/20 border-green-500/30 text-green-300' :
+                                            result.findings.shadow.level === 'DEGEN' ? 'bg-yellow-500/20 border-yellow-500/30 text-yellow-300' :
+                                                'bg-red-500/20 border-red-500/30 text-red-300'
+                                            }`}>
+                                            <Lock size={12} strokeWidth={3} />
+                                            <span className="truncate">{result.findings.shadow.message}</span>
+                                        </div>
+                                    </div>
+
                                     {pair && (
-                                        <a href={pair.url} target="_blank" rel="noopener noreferrer" className="px-6 py-2 bg-white text-black font-bold rounded hover:scale-105 transition-transform flex items-center gap-2 whitespace-nowrap">
-                                            {t('ui.view_chart')} <ExternalLink size={16} />
+                                        <a href={pair.url} target="_blank" rel="noopener noreferrer" className="w-full px-4 py-2 bg-white text-black font-bold rounded hover:scale-105 transition-transform flex items-center justify-center gap-2 whitespace-nowrap text-xs">
+                                            {t('ui.view_chart')} <ExternalLink size={14} />
                                         </a>
                                     )}
                                 </div>
