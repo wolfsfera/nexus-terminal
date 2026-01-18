@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ExternalLink, ShieldAlert, ShieldCheck, Shield, Activity, DollarSign, Clock, Lock, Users, FileWarning, Globe, Search, Bell, BellRing, LogOut } from 'lucide-react';
+import { X, ExternalLink, ShieldAlert, ShieldCheck, Shield, Activity, DollarSign, Clock, Lock, Users, FileWarning, Globe, Search, Bell, BellRing, LogOut, Copy, Check, Share2, Rocket } from 'lucide-react';
 import { AnalysisResult } from '@/lib/nexus-types';
 import { useLanguage } from '@/context/LanguageContext';
 import { useCredits } from '@/context/CreditsContext';
@@ -23,11 +23,27 @@ export default function ReportModal({ isOpen, onClose, result, onTopUp }: Report
     const [isSubscribed, setIsSubscribed] = useState(false);
     const [isUnlocking, setIsUnlocking] = useState(false);
     const [confirming, setConfirming] = useState(false);
+    const [copied, setCopied] = useState(false);
+
+    const handleCopyCA = () => {
+        if (!result?.pairData?.baseToken?.address) return;
+        navigator.clipboard.writeText(result.pairData.baseToken.address);
+        setCopied(true);
+        playClick();
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    const handleShareTwitter = () => {
+        if (!result) return;
+        playClick();
+        const text = `Just scanned $${result.pairData?.baseToken?.symbol} with Nexus Terminal. 🐺\n\n🔎 VERDICT: ${result.riskLevel} (${result.score}/100)\n\nScan any token for free & catch rugs before they happen.\n👇👇👇\nscanner.wolfsfera.com`;
+        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+    };
 
     const handleDownloadPDF = () => {
         if (!result) return;
 
-        // 1. Check & Spend Credit
+        // 1. Check & Spend Credit (Download is Premium Feature)
         if (balance < 1) {
             onTopUp(); // Open Payment Modal if insufficient
             return;
@@ -134,21 +150,14 @@ export default function ReportModal({ isOpen, onClose, result, onTopUp }: Report
 
     const handleSubscribe = () => {
         if (isSubscribed) return;
-
-        // Confirmation Step NO LONGER NEEDED for free reveal, can just open
-        // But keeping visual confirmation for drama/effect if desired?
-        // Let's make it direct click -> decrypt animation (Free)
-
         playClick();
         setIsUnlocking(true);
         setConfirming(false);
-
-        // Simulate "Heavy Decryption" process (Visual only, no cost)
         setTimeout(() => {
-            playSuccess(); // BINGO SOUND
+            playSuccess();
             setIsUnlocking(false);
             setIsSubscribed(true);
-        }, 1500); // Slightly faster reveal
+        }, 1500);
     };
 
     if (!result) return null;
@@ -166,6 +175,9 @@ export default function ReportModal({ isOpen, onClose, result, onTopUp }: Report
     const isMintSafe = security ? security.mintable !== "1" : false;
     const isHoneyPotSafe = security ? security.is_honeypot !== "1" : false;
     const isHoldersSafe = security ? top10Percent < 50 : false;
+
+    // Badges Data
+    const findingsList = [result.findings.analyst, result.findings.sentinel, result.findings.shadow];
 
     return (
         <AnimatePresence>
@@ -203,11 +215,28 @@ export default function ReportModal({ isOpen, onClose, result, onTopUp }: Report
                                         <Lock size={10} className="shrink-0" />
                                         <span className="hidden md:inline">CONTRACT:</span>
                                         <span className="text-gold-primary select-all truncate">{pair?.baseToken?.address || "UNKNOWN"}</span>
+                                        {/* COPY CA BUTTON */}
+                                        <button
+                                            onClick={handleCopyCA}
+                                            className="ml-1 p-1 hover:text-white transition-colors relative"
+                                            title="Copy CA"
+                                        >
+                                            {copied ? <Check size={12} className="text-green-500" /> : <Copy size={12} />}
+                                        </button>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="flex flex-wrap items-center gap-2 md:gap-3 w-full md:w-auto mt-2 md:mt-0">
+                                {/* SHARE BUTTON */}
+                                <button
+                                    onClick={handleShareTwitter}
+                                    className="px-3 py-2 rounded-full border border-sky-500/30 text-[10px] text-sky-400 hover:bg-sky-500/10 transition-all flex items-center gap-2 font-mono uppercase tracking-wider group"
+                                >
+                                    <Share2 size={14} className="md:w-4 md:h-4 group-hover:rotate-12 transition-transform" />
+                                    <span className="hidden md:inline">SHARE</span>
+                                </button>
+
                                 {/* PDF DOWNLOAD BUTTON */}
                                 <button
                                     onClick={handleDownloadPDF}
@@ -221,109 +250,122 @@ export default function ReportModal({ isOpen, onClose, result, onTopUp }: Report
                                     onClick={onClose}
                                     className="px-3 py-2 md:py-1.5 rounded-full border border-white/10 text-[10px] text-gray-400 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2 font-mono uppercase tracking-wider group"
                                 >
-                                    <span className="hidden md:inline">EXIT</span>
-                                    <LogOut size={14} className="md:w-3 md:h-3 group-hover:translate-x-0.5 transition-transform" />
+                                    <LogOut size={14} className="md:w-3 md:h-3" />
                                 </button>
                             </div>
                         </div>
 
                         <div className="overflow-y-auto p-4 md:p-8 space-y-6 md:space-y-10 custom-scrollbar flex flex-col">
 
-                            {/* SECTION 1: PREMIUM CONTENT (LOCKED/UNLOCKED) */}
-                            {/* This is now FIRST so users see the Lock/Paywall immediately */}
-                            <div className="relative order-1">
-
-                                <div className={`transition-all duration-500`}>
-
-                                    {/* VERDICT & SCORE (Moved inside Premium visual block) */}
-                                    <div className={`p-8 rounded-2xl border-2 flex flex-col md:flex-row items-center justify-between gap-8 mb-10 ${result.riskLevel === 'ELITE' ? 'bg-purple-500/10 border-purple-500/50' :
-                                        result.riskLevel === 'SAFE' ? 'bg-green-500/10 border-green-500/50' :
-                                            result.riskLevel === 'DEGEN' ? 'bg-yellow-500/10 border-yellow-500/50' :
-                                                result.riskLevel === 'DANGER' ? 'bg-orange-500/10 border-orange-500/50' :
-                                                    'bg-red-500/10 border-red-500/50'
-                                        }`}>
-                                        <div className="flex-1">
-                                            <h4 className="text-sm font-mono uppercase tracking-widest opacity-70 mb-2">{t('report.verdict_header')}</h4>
-                                            <div className={`text-4xl md:text-5xl font-black uppercase leading-none mb-2 ${result.riskLevel === 'ELITE' ? 'text-purple-400 drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]' :
-                                                result.riskLevel === 'SAFE' ? 'text-green-500' :
-                                                    result.riskLevel === 'DEGEN' ? 'text-yellow-400' :
-                                                        result.riskLevel === 'DANGER' ? 'text-orange-500' :
-                                                            'text-red-600 glitch-text'
-                                                }`} data-text={result.verdict}>
-                                                {result.verdict}
-                                            </div>
-                                            <p className="text-gray-300 max-w-xl">
-                                                {t(`descriptions.${result.riskLevel.toLowerCase()}`)}
-                                            </p>
-                                        </div>
-                                        <div className="flex flex-col items-center gap-4 min-w-[200px]">
-                                            <div className="text-6xl font-black text-white font-mono">{result.score}</div>
-                                            <div className="text-xs uppercase tracking-widest text-gray-500">{t('report.score_label')}</div>
-                                            {pair && (
-                                                <a href={pair.url} target="_blank" rel="noopener noreferrer" className="px-6 py-2 bg-white text-black font-bold rounded hover:scale-105 transition-transform flex items-center gap-2">
-                                                    {t('ui.view_chart')} <ExternalLink size={16} />
-                                                </a>
-                                            )}
-                                        </div>
+                            {/* SECTION 1: VERDICT & SCORE */}
+                            <div className={`p-8 rounded-2xl border-2 flex flex-col md:flex-row items-center justify-between gap-8 ${result.riskLevel === 'ELITE' ? 'bg-purple-500/10 border-purple-500/50' :
+                                result.riskLevel === 'SAFE' ? 'bg-green-500/10 border-green-500/50' :
+                                    result.riskLevel === 'DEGEN' ? 'bg-yellow-500/10 border-yellow-500/50' :
+                                        result.riskLevel === 'DANGER' ? 'bg-orange-500/10 border-orange-500/50' :
+                                            'bg-red-500/10 border-red-500/50'
+                                }`}>
+                                <div className="flex-1">
+                                    <h4 className="text-sm font-mono uppercase tracking-widest opacity-70 mb-2">{t('report.verdict_header')}</h4>
+                                    <div className={`text-4xl md:text-5xl font-black uppercase leading-none mb-2 ${result.riskLevel === 'ELITE' ? 'text-purple-400 drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]' :
+                                        result.riskLevel === 'SAFE' ? 'text-green-500' :
+                                            result.riskLevel === 'DEGEN' ? 'text-yellow-400' :
+                                                result.riskLevel === 'DANGER' ? 'text-orange-500' :
+                                                    'text-red-600 glitch-text'
+                                        }`} data-text={result.verdict}>
+                                        {result.verdict}
                                     </div>
-
-                                    {/* SWARM INTELLIGENCE */}
-                                    <div className="mb-10">
-                                        <h3 className="text-sm font-mono text-gold-primary font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                                            <Activity size={14} /> {t('report.swarm_header')}
-                                        </h3>
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                            <AgentFindingCard agent={result.findings.analyst} name={t('agents.analyst.name')} role={t('agents.analyst.role')} />
-                                            <AgentFindingCard agent={result.findings.sentinel} name={t('agents.sentinel.name')} role={t('agents.sentinel.role')} />
-                                            <AgentFindingCard agent={result.findings.shadow} name={t('agents.shadow.name')} role={t('agents.shadow.role')} />
-                                        </div>
-                                    </div>
-
-                                    {/* EXTERNAL INTELLIGENCE UPLINK */}
-                                    <div className="mb-10">
-                                        <h3 className="text-sm font-mono text-blue-400 font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                                            <ExternalLink size={14} /> {t('report.uplink_header')}
-                                        </h3>
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                            <ExternalLinkButton
-                                                label={t('links.explorer')}
-                                                icon={<Globe size={16} />}
-                                                href={getExplorerUrl(pair?.chainId, pair?.baseToken?.address)}
-                                                color="blue"
-                                            />
-                                            <ExternalLinkButton
-                                                label={t('links.rugcheck')}
-                                                icon={<ShieldCheck size={16} />}
-                                                href={getAuditUrl(pair?.chainId, pair?.baseToken?.address)}
-                                                color="green"
-                                            />
-                                            <ExternalLinkButton
-                                                label={t('links.twitter')}
-                                                icon={<Search size={16} />}
-                                                href={`https://twitter.com/search?q=${pair?.baseToken?.address || pair?.baseToken?.symbol}&src=typed_query`}
-                                                color="sky"
-                                            />
-                                        </div>
-                                    </div>
-
-                                </div>
-
-                                {/* LOCK REMOVED - CONTENT IS FREE */}
-                                <div className="absolute inset-x-0 bottom-0 h-2 bg-gradient-to-t from-black/50 to-transparent pointer-events-none"></div>
-                            </div>
-
-                            {/* DISCLAIMER FOOTER (Moved Up) */}
-                            <div className="border-t border-white/10 pt-6 mt-8 order-2">
-                                <div className="flex items-start gap-4 text-gray-500 text-[10px] md:text-xs font-mono leading-relaxed">
-                                    <FileWarning size={24} className="shrink-0 text-gray-600" />
-                                    <p>
-                                        <span className="font-bold text-gray-400">{t('report.disclaimer_title')}</span> {t('report.disclaimer_text')}
+                                    <p className="text-gray-300 max-w-xl mb-4">
+                                        {t(`descriptions.${result.riskLevel.toLowerCase()}`)}
                                     </p>
+
+                                    {/* VISUAL BADGES (NEW) */}
+                                    <div className="flex flex-wrap gap-2">
+                                        {findingsList.map((f, i) => (
+                                            <div key={i} className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${f.level === 'ELITE' || f.level === 'SAFE' ? 'bg-green-500/10 border-green-500/30 text-green-400' :
+                                                f.level === 'DEGEN' ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500' :
+                                                    'bg-red-500/10 border-red-500/30 text-red-500'
+                                                }`}>
+                                                {f.message}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col items-center gap-4 min-w-[200px]">
+                                    <div className="text-6xl font-black text-white font-mono">{result.score}</div>
+                                    <div className="text-xs uppercase tracking-widest text-gray-500">{t('report.score_label')}</div>
+                                    {pair && (
+                                        <a href={pair.url} target="_blank" rel="noopener noreferrer" className="px-6 py-2 bg-white text-black font-bold rounded hover:scale-105 transition-transform flex items-center gap-2 whitespace-nowrap">
+                                            {t('ui.view_chart')} <ExternalLink size={16} />
+                                        </a>
+                                    )}
                                 </div>
                             </div>
 
-                            {/* SECTION 2: THE FIREWALL (Technical Details - NOW LAST) */}
-                            <div className="order-3 border-t border-white/10 pt-8">
+                            {/* SECTION 2: DEGEN TRADING TOOLS (NEW) */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* TRADE ACTIONS */}
+                                <div>
+                                    <h3 className="text-sm font-mono text-green-400 font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                        <Rocket size={14} /> TRADE ON
+                                    </h3>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <a
+                                            href={`https://pump.fun/${pair?.baseToken?.address}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="px-4 py-3 bg-[#16A678]/10 border border-[#16A678]/40 hover:bg-[#16A678]/20 text-[#16A678] rounded-xl font-bold font-mono text-xs flex items-center justify-center gap-2 uppercase tracking-wide transition-all"
+                                        >
+                                            💊 PUMP.FUN
+                                        </a>
+                                        <a
+                                            href={`https://bullx.io/terminal?chainId=1399811149&address=${pair?.baseToken?.address}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="px-4 py-3 bg-[#a855f7]/10 border border-[#a855f7]/40 hover:bg-[#a855f7]/20 text-[#a855f7] rounded-xl font-bold font-mono text-xs flex items-center justify-center gap-2 uppercase tracking-wide transition-all"
+                                        >
+                                            🐮 BULLX
+                                        </a>
+                                    </div>
+                                </div>
+
+                                {/* RESEARCH ACTIONS */}
+                                <div>
+                                    <h3 className="text-sm font-mono text-blue-400 font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                        <Search size={14} /> DEEP DIVE
+                                    </h3>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <ExternalLinkButton
+                                            label="SOLSCAN"
+                                            icon={<Globe size={16} />}
+                                            href={getExplorerUrl(pair?.chainId, pair?.baseToken?.address)}
+                                            color="blue"
+                                        />
+                                        <ExternalLinkButton
+                                            label="RUGCHECK"
+                                            icon={<ShieldCheck size={16} />}
+                                            href={getAuditUrl(pair?.chainId, pair?.baseToken?.address)}
+                                            color="green"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            {/* SECTION 3: SWARM INTELLIGENCE */}
+                            <div>
+                                <h3 className="text-sm font-mono text-gold-primary font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                    <Activity size={14} /> {t('report.swarm_header')}
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <AgentFindingCard agent={result.findings.analyst} name={t('agents.analyst.name')} role={t('agents.analyst.role')} />
+                                    <AgentFindingCard agent={result.findings.sentinel} name={t('agents.sentinel.name')} role={t('agents.sentinel.role')} />
+                                    <AgentFindingCard agent={result.findings.shadow} name={t('agents.shadow.name')} role={t('agents.shadow.role')} />
+                                </div>
+                            </div>
+
+                            {/* SECTION 4: THE FIREWALL (Technical Details) */}
+                            <div className="border-t border-white/10 pt-8">
                                 <h3 className="text-[10px] md:text-sm font-mono text-gray-500 font-bold uppercase tracking-[0.2em] mb-2 md:mb-4 flex items-center gap-2">
                                     <Lock size={12} className="md:w-3.5 md:h-3.5" /> {t('report.security_header')}
                                 </h3>
@@ -358,6 +400,17 @@ export default function ReportModal({ isOpen, onClose, result, onTopUp }: Report
                                     </div>
                                 )}
                             </div>
+
+                            {/* DISCLAIMER FOOTER */}
+                            <div className="border-t border-white/10 pt-6 mt-2">
+                                <div className="flex items-start gap-4 text-gray-500 text-[10px] md:text-xs font-mono leading-relaxed">
+                                    <FileWarning size={24} className="shrink-0 text-gray-600" />
+                                    <p>
+                                        <span className="font-bold text-gray-400">{t('report.disclaimer_title')}</span> {t('report.disclaimer_text')}
+                                    </p>
+                                </div>
+                            </div>
+
                         </div>
                     </motion.div>
                 </div>

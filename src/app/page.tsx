@@ -76,8 +76,35 @@ export default function NexusPage() {
 
     try {
       // MAGIC WORD BYPASS FOR TESTING
+      // MAGIC WORD BYPASS FOR TESTING
       if (tokenInput === 'REFUND') {
         throw new Error("TEST_REFUND");
+      }
+
+      // MAGIC WORD FOR VIDEO DEMO: CRITICAL RED SCREEN
+      if (tokenInput === 'TEST_CRITICAL') {
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Fake scanning delay
+        const criticalResult: any = {
+          riskLevel: 'CRITICAL',
+          score: 12,
+          verdict: 'RUG PULL DETECTED',
+          findings: {
+            analyst: { id: 'CRIT-001', status: 'danger', message: 'Mint Authority ENABLED. Hidden supply detected.' },
+            sentinel: { id: 'CRIT-002', status: 'danger', message: 'Liquidity is unlocked and removable.' },
+            shadow: { id: 'CRIT-003', status: 'danger', message: 'Dev wallet sold 40% of supply.' }
+          },
+          logs: [
+            '> SCANNING SMART CONTRACT...',
+            '> ANALYZING LIQUIDITY POOL...',
+            '> WARNING: MINT AUTHORITY DETECTED',
+            '> WARNING: DEV WALLET ACTIVITY SUSPICIOUS',
+            '> VERDICT: IMMEDIATE EXIT REQUIRED. SCAM.'
+          ]
+        };
+        setResult(criticalResult);
+        setLogs(criticalResult.logs);
+        playAlert(); // Trigger the alarm sound
+        return; // Stop execution here
       }
 
       // Call the Real Brain with Language
