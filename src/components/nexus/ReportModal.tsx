@@ -40,7 +40,7 @@ export default function ReportModal({ isOpen, onClose, result, onTopUp }: Report
         window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
     };
 
-    const handleDownloadPDF = () => {
+    const handleDownloadPDF = async () => {
         if (!result) return;
 
         // 1. Check & Spend Credit (Download is Premium Feature)
@@ -49,7 +49,7 @@ export default function ReportModal({ isOpen, onClose, result, onTopUp }: Report
             return;
         }
 
-        const spent = spendCredits(1);
+        const spent = await spendCredits(1);
         if (!spent) return;
 
         playSuccess(); // Ching!

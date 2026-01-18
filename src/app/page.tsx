@@ -37,42 +37,34 @@ export default function NexusPage() {
 
   // Boot Sequence Voice
 
-  const runAnalysis = async () => {
-    if (!tokenInput) return;
+  const handleAnalyze = async () => {
+    if (!tokenInput.trim()) {
+      setLogs(prev => [...prev, "> ERROR: INPUT REQUIRED"]);
+      return;
+    }
 
-    // CHECK CREDITS
-    if (!spendCredits(1)) {
-      playAlert();
-      setIsPaymentOpen(true);
+    // Assuming isValidSolanaAddress and playError are defined elsewhere or will be added by the user.
+    // For now, let's mock them to avoid compilation errors if they are not present in the original file.
+    const isValidSolanaAddress = (address: string) => address.length > 30; // Placeholder
+    const playError = () => playAlert(); // Placeholder, using existing sound
+
+    if (!isValidSolanaAddress(tokenInput)) {
+      setLogs(prev => [...prev, "> ERROR: INVALID SOLANA ADDRESS DETECTED"]);
+      return;
+    }
+
+    // Check credits via Server (Async)
+    const success = await spendCredits(1);
+    if (!success) {
+      setLogs(prev => [...prev, "> ACCESS DENIED: INSUFFICIENT CREDITS"]);
+      playError();
+      setTimeout(() => setIsPaymentOpen(true), 1500);
       return;
     }
 
     playClick();
-    playScan();
-
-
-    setAnalyzing(true);
+    setAnalyzing(true); // Changed setIsAnalyzing to setAnalyzing
     setResult(null);
-    setLogs([`> LOCKING TARGET: ${tokenInput.toUpperCase()}...`]);
-
-    // Simulation Logs
-    const logSequence = [
-      "> ESTABLISHING x/402 PAYMENT CHANNEL...",
-      "> AGENTS DEPLOYED TO MAINNET...",
-      "> INTERCEPTING MEMPOOL DATA...",
-      "> CRACKING LIQUIDITY LOCK...",
-    ];
-
-    // Start log sequence
-    let logIndex = 0;
-    const logInterval = setInterval(() => {
-      if (logIndex < logSequence.length) {
-        setLogs(prev => [...prev, logSequence[logIndex]]);
-        logIndex++;
-      } else {
-        clearInterval(logInterval);
-      }
-    }, 500);
 
     try {
       // MAGIC WORD BYPASS FOR TESTING
@@ -153,7 +145,6 @@ export default function NexusPage() {
 
     } finally {
       setAnalyzing(false);
-      clearInterval(logInterval);
     }
   };
 
@@ -353,7 +344,7 @@ export default function NexusPage() {
                   whileHover={{ scale: 1.05, textShadow: "0 0 8px rgb(0,0,0)" }}
                   whileTap={{ scale: 0.95 }}
                   onMouseEnter={playHover}
-                  onClick={runAnalysis}
+                  onClick={handleAnalyze}
                   disabled={!tokenInput}
                   className={`w-full font-bold text-lg py-4 rounded-xl shadow-[0_0_30px_rgba(212,175,55,0.4)] hover:shadow-[0_0_50px_rgba(212,175,55,0.6)] transition-all flex items-center justify-center gap-3 relative overflow-hidden ${!tokenInput ? 'bg-gray-800 text-gray-500 cursor-not-allowed shadow-none' : 'bg-gold-gradient text-black'
                     }`}

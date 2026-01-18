@@ -85,7 +85,7 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
             }
 
             // SUCCESS
-            addCredits(selectedPackage.credits);
+            await addCredits(selectedPackage.credits);
             setProcessing(false);
             setSuccess(true);
             setTimeout(() => {
@@ -100,7 +100,7 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
             // AGGRESSIVE OPTIMISTIC FIX:
             if (signature) {
                 console.log("Tx sent but confirmation failed. Granting credits optimistically.");
-                addCredits(selectedPackage.credits);
+                await addCredits(selectedPackage.credits);
                 setSuccess(true);
                 setTimeout(() => {
                     setSuccess(false);
