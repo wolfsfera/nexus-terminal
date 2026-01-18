@@ -6,7 +6,7 @@ import AgentCard from '@/components/nexus/AgentCard';
 import ProbabilityDial from '@/components/nexus/ProbabilityDial';
 import InfoModal from '@/components/nexus/InfoModal';
 import ReportModal from '@/components/nexus/ReportModal';
-import { Play, Lock, BookOpen, ExternalLink, Globe, ShieldCheck } from 'lucide-react';
+import { Play, Lock, BookOpen, ExternalLink, Globe, ShieldCheck, DollarSign, Activity } from 'lucide-react';
 import Image from 'next/image';
 import { nexusBrain } from '@/lib/nexus-brain';
 import { AnalysisResult } from '@/lib/nexus-types';
@@ -387,7 +387,20 @@ export default function NexusPage() {
                   result.riskLevel === 'CRITICAL' ? 'bg-red-500/10 border-red-500/30' :
                     'bg-yellow-500/10 border-yellow-500/30'
                   }`}>
-                  <h3 className={`font-bold text-2xl mb-2 flex items-center justify-center gap-2 ${result.riskLevel === 'SAFE' ? 'text-green-400' :
+
+                  {/* RISK LEVEL STAMP (NEW) */}
+                  <div className="flex justify-center mb-3">
+                    <span className={`px-4 py-1 rounded-full text-sm font-black border tracking-widest uppercase ${result.riskLevel === 'ELITE' ? 'bg-purple-500 text-black border-purple-400' :
+                      result.riskLevel === 'SAFE' ? 'bg-green-500 text-black border-green-400' :
+                        result.riskLevel === 'DEGEN' ? 'bg-yellow-500 text-black border-yellow-400' :
+                          result.riskLevel === 'DANGER' ? 'bg-orange-500 text-black border-orange-400' :
+                            'bg-red-600 text-white border-red-500'
+                      }`}>
+                      {result.riskLevel}
+                    </span>
+                  </div>
+
+                  <h3 className={`font-bold text-2xl mb-4 flex items-center justify-center gap-2 ${result.riskLevel === 'SAFE' ? 'text-green-400' :
                     result.riskLevel === 'CRITICAL' ? 'text-red-500' :
                       'text-yellow-400'
                     }`}>
@@ -397,6 +410,29 @@ export default function NexusPage() {
                       }`}></div>
                     {result.verdict}
                   </h3>
+
+                  {/* VISUAL MOTIVES (TOP 3) - NEW */}
+                  <div className="flex flex-col gap-2 mb-4">
+                    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-[10px] font-bold uppercase tracking-wide bg-black/40 ${result.findings.analyst.level === 'ELITE' || result.findings.analyst.level === 'SAFE' ? 'border-green-500/30 text-green-400' :
+                      result.findings.analyst.level === 'DEGEN' ? 'border-yellow-500/30 text-yellow-500' : 'border-red-500/30 text-red-500'
+                      }`}>
+                      <DollarSign size={12} strokeWidth={3} />
+                      <span className="flex-1 text-left">{t('agents.analyst.name')}: {result.findings.analyst.message}</span>
+                    </div>
+                    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-[10px] font-bold uppercase tracking-wide bg-black/40 ${result.findings.sentinel.level === 'ELITE' || result.findings.sentinel.level === 'SAFE' ? 'border-green-500/30 text-green-400' :
+                      result.findings.sentinel.level === 'DEGEN' ? 'border-yellow-500/30 text-yellow-500' : 'border-red-500/30 text-red-500'
+                      }`}>
+                      <Activity size={12} strokeWidth={3} />
+                      <span className="flex-1 text-left">{t('agents.sentinel.name')}: {result.findings.sentinel.message}</span>
+                    </div>
+                    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-[10px] font-bold uppercase tracking-wide bg-black/40 ${result.findings.shadow.level === 'ELITE' || result.findings.shadow.level === 'SAFE' ? 'border-green-500/30 text-green-400' :
+                      result.findings.shadow.level === 'DEGEN' ? 'border-yellow-500/30 text-yellow-500' : 'border-red-500/30 text-red-500'
+                      }`}>
+                      <Lock size={12} strokeWidth={3} />
+                      <span className="flex-1 text-left">{t('agents.shadow.name')}: {result.findings.shadow.message}</span>
+                    </div>
+                  </div>
+
                   <div className="space-y-1 text-center">
                     {logs.slice(-3).map((log, i) => (
                       <p key={i} className={`text-xs font-mono ${log.includes("REEMBOLSADO") || log.includes("REFUNDED") ? 'text-green-400 font-bold animate-pulse' : 'text-gray-400'}`}>
