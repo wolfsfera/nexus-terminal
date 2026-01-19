@@ -6,7 +6,8 @@ import AgentCard from '@/components/nexus/AgentCard';
 import ProbabilityDial from '@/components/nexus/ProbabilityDial';
 import InfoModal from '@/components/nexus/InfoModal';
 import ReportModal from '@/components/nexus/ReportModal';
-import { Play, Lock, BookOpen, ExternalLink, Globe, ShieldCheck, DollarSign, Activity } from 'lucide-react';
+import AcademyModal from '@/components/nexus/AcademyModal'; // NEW IMPORT
+import { Play, Lock, BookOpen, ExternalLink, Globe, ShieldCheck, DollarSign, Activity, BadgeCheck } from 'lucide-react'; // Added BadgeCheck
 import Image from 'next/image';
 import { nexusBrain } from '@/lib/nexus-brain';
 import { AnalysisResult } from '@/lib/nexus-types';
@@ -26,6 +27,7 @@ export default function NexusPage() {
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [showInfo, setShowInfo] = useState(false);
+  const [showAcademy, setShowAcademy] = useState(false); // NEW STATE
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
   const [tokenInput, setTokenInput] = useState('');
@@ -43,15 +45,12 @@ export default function NexusPage() {
       return;
     }
 
-    // Assuming isValidSolanaAddress and playError are defined elsewhere or will be added by the user.
-    // For now, let's mock them to avoid compilation errors if they are not present in the original file.
     // Updated to allow Tickers (short names) for testing/demo purposes
     const isValidSolanaAddress = (address: string) => address.length > 1;
-    const playError = () => playAlert();
 
     if (!isValidSolanaAddress(tokenInput)) {
       setLogs(prev => [...prev, "> ERROR: INPUT TOO SHORT"]);
-      playError(); // Now allows sound feedback
+      playAlert();
       return;
     }
 
@@ -59,17 +58,16 @@ export default function NexusPage() {
     const success = await spendCredits(1);
     if (!success) {
       setLogs(prev => [...prev, "> ACCESS DENIED: INSUFFICIENT CREDITS"]);
-      playError();
+      playAlert();
       setTimeout(() => setIsPaymentOpen(true), 1500);
       return;
     }
 
     playClick();
-    setAnalyzing(true); // Changed setIsAnalyzing to setAnalyzing
+    setAnalyzing(true);
     setResult(null);
 
     try {
-      // MAGIC WORD BYPASS FOR TESTING
       // MAGIC WORD BYPASS FOR TESTING
       if (tokenInput === 'REFUND') {
         throw new Error("TEST_REFUND");
@@ -83,9 +81,9 @@ export default function NexusPage() {
           score: 12,
           verdict: 'RUG PULL DETECTED',
           findings: {
-            analyst: { id: 'CRIT-001', status: 'danger', message: 'Mint Authority ENABLED. Hidden supply detected.' },
-            sentinel: { id: 'CRIT-002', status: 'danger', message: 'Liquidity is unlocked and removable.' },
-            shadow: { id: 'CRIT-003', status: 'danger', message: 'Dev wallet sold 40% of supply.' }
+            analyst: { id: 'CRIT-001', level: 'DANGER', message: 'Mint Authority ENABLED. Hidden supply detected.' },
+            sentinel: { id: 'CRIT-002', level: 'DANGER', message: 'Liquidity is unlocked and removable.' },
+            shadow: { id: 'CRIT-003', level: 'DANGER', message: 'Dev wallet sold 40% of supply.' }
           },
           logs: [
             '> SCANNING SMART CONTRACT...',
@@ -104,9 +102,6 @@ export default function NexusPage() {
       // Call the Real Brain with Language
       const data = await nexusBrain.analyze(tokenInput, language);
 
-      // DEBUG LOG
-      // data.logs.push(`> DEBUG ID: ${data.findings.analyst.id}`);
-
       // AUTO-REFUND LOGIC (Fair Play)
       if (data.findings.analyst.id === 'ERR') {
         addCredits(1);
@@ -124,8 +119,6 @@ export default function NexusPage() {
         playAlert();
       } else if (data.riskLevel === 'SAFE') {
         playSuccess();
-      } else {
-        // No sound or neutral sound
       }
 
     } catch (error: any) {
@@ -160,7 +153,7 @@ export default function NexusPage() {
           alt="Nexus Motherboard"
           fill
           priority
-          className={`object-cover opacity-40 transition-all duration-1000 ${result?.riskLevel === 'CRITICAL' ? 'grayscale brightness-50 sepiahue-rotate-[-50deg] saturate-200' : // Red tint for danger
+          className={`object-cover opacity-40 transition-all duration-1000 ${result?.riskLevel === 'CRITICAL' ? 'grayscale brightness-50 sepia hue-rotate-[-50deg] saturate-200' : // Red tint for danger
             result?.riskLevel === 'SAFE' ? 'grayscale-0' :
               'grayscale'
             }`}
@@ -171,13 +164,16 @@ export default function NexusPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/80 pointer-events-none"></div>
       </div>
 
+      {/* NEW ACADEMY MODAL */}
+      <AcademyModal isOpen={showAcademy} onClose={() => setShowAcademy(false)} />
+
       <div className="relative z-10 container mx-auto px-4 pt-4 pb-20 min-h-screen flex flex-col">
 
         {/* 3D Logo Header - Compact Version */}
         <header className="flex flex-col items-center mb-6 shrink-0 relative w-full max-w-6xl">
 
           {/* Language Toggle (Left) */}
-          <div className="absolute left-0 top-0 md:left-4 md:top-4 z-30">
+          <div className="absolute left-0 top-0 md:left-4 md:top-4 z-30 flex gap-2">
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
@@ -187,6 +183,19 @@ export default function NexusPage() {
             >
               <Globe size={14} />
               <span className="font-bold">{language.toUpperCase()}</span>
+            </motion.button>
+
+            {/* NEW ACADEMY BUTTON */}
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onMouseEnter={playHover}
+              onClick={() => { playClick(); setShowAcademy(true); }}
+              className="text-xs font-mono text-white border border-white/30 px-3 py-1 rounded hover:bg-white/10 flex items-center gap-2 pointer-events-auto bg-black/50 backdrop-blur"
+            >
+              <BadgeCheck size={14} className="text-blue-400" />
+              <span className="font-bold hidden md:inline">ACADEMY</span>
+              <span className="font-bold md:hidden">?</span>
             </motion.button>
           </div>
 
@@ -235,28 +244,33 @@ export default function NexusPage() {
             <span className="hidden md:inline">{t('ui.subtitle')}</span>
           </motion.p>
 
-          {/* SECURITY TRUST BADGE */}
+          {/* SECURITY TRUST BADGE (Updated Visibilty) */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1 }}
-            className="mt-3 flex items-center justify-center gap-2"
+            className="mt-6 flex flex-wrap items-center justify-center gap-3 md:gap-4"
           >
-            <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded border border-white/10 text-[10px] font-mono text-gray-500 hover:text-white transition-colors cursor-help group relative">
-              <ShieldCheck size={12} className="text-blue-500" />
-              <span>INTELLIGENCE POWERED BY</span>
-              <span className="font-bold text-gray-400">RUGCHECK</span>
-              <span>&</span>
-              <span className="font-bold text-gray-400">GOPLUS</span>
+            {/* Badge 1: Data Sources */}
+            <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-lg border border-white/10 text-[10px] md:text-xs font-mono text-gray-400 hover:text-white hover:border-gold-primary/30 transition-all cursor-help group relative">
+              <ShieldCheck size={14} className="text-blue-500" />
+              <span className="font-bold">POWERED BY RUGCHECK & GOPLUS</span>
 
               {/* Tooltip */}
-              <div className="absolute top-full text-center mt-2 left-1/2 -translate-x-1/2 w-48 p-2 bg-black border border-white/20 rounded text-[9px] text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-                VERIFIED SECURITY DATA PROVIDERS
+              <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-48 p-3 bg-zinc-900 border border-gold-primary/20 rounded-xl text-[10px] text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">
+                We use enterprise-grade APIs to verify contract safety.
               </div>
             </div>
-            <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded border border-white/10 text-[10px] font-mono text-gray-500">
-              <Lock size={12} className="text-green-500" />
-              <span>SSL ENCRYPTED</span>
+
+            {/* Badge 2: Payment Safety */}
+            <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-lg border border-white/10 text-[10px] md:text-xs font-mono text-gray-400 hover:text-white hover:border-green-500/30 transition-all cursor-help group relative">
+              <Lock size={14} className="text-green-500" />
+              <span className="font-bold">NON-CUSTODIAL PAYMENTS</span>
+
+              {/* Tooltip */}
+              <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-48 p-3 bg-zinc-900 border border-green-500/20 rounded-xl text-[10px] text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">
+                We never touch your private keys. All transactions are handled by Solana Pay.
+              </div>
             </div>
           </motion.div>
         </header>
@@ -302,8 +316,7 @@ export default function NexusPage() {
             </div>
           </div>
 
-          {/* Center Column: Dial & Action - Compact */}
-          {/* Center Column: Dial & Action - Expanded for Mobile */}
+          {/* Center Column: Dial & Action */}
           <div className={`lg:col-span-2 border transition-all duration-1000 rounded-3xl p-6 pb-16 backdrop-blur-md shadow-2xl relative group h-full min-h-[500px] flex flex-col items-center justify-center ${result?.riskLevel === 'CRITICAL' ? 'bg-red-950/30 border-red-500/30 shadow-red-900/20' :
             result?.riskLevel === 'SAFE' ? 'bg-green-950/30 border-green-500/30 shadow-green-900/20' :
               'bg-black/40 border-white/10'
@@ -388,7 +401,7 @@ export default function NexusPage() {
                       alt="Watermark"
                       width={200}
                       height={200}
-                      className="object-contain" // removed grayscale to keep golden brand feel, or use grayscale if preferred
+                      className="object-contain"
                     />
                   </div>
                   {/* Watermark Label */}

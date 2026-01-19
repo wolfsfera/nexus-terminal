@@ -256,6 +256,17 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                                 </p>
                             </div>
                         )}
+
+                        {/* Anti-Drainer Guarantee Footer */}
+                        <div className="mt-6 pt-6 border-t border-white/10 flex items-start gap-3 opacity-60">
+                            <CheckCircle2 size={16} className="text-green-500 shrink-0 mt-0.5" />
+                            <p className="text-[10px] text-gray-400 leading-tight">
+                                <strong className="text-gray-300 block mb-1">100% SAFE / ANTI-DRAIN GUARANTEE</strong>
+                                Your funds are safu. This transaction is processed directly by the Solana Blockchain.
+                                Nexus Terminal is <span className="text-green-400">Non-Custodial</span> and never has access to your private keys or wallet balance.
+                            </p>
+                        </div>
+
                     </motion.div>
                 </div>
             )}
