@@ -6,8 +6,8 @@ import AgentCard from '@/components/nexus/AgentCard';
 import ProbabilityDial from '@/components/nexus/ProbabilityDial';
 import InfoModal from '@/components/nexus/InfoModal';
 import ReportModal from '@/components/nexus/ReportModal';
-import AcademyModal from '@/components/nexus/AcademyModal'; // NEW IMPORT
-import { Play, Lock, BookOpen, ExternalLink, Globe, ShieldCheck, DollarSign, Activity, BadgeCheck } from 'lucide-react'; // Added BadgeCheck
+import AcademyModal from '@/components/nexus/AcademyModal';
+import { Play, Lock, BookOpen, ExternalLink, Globe, ShieldCheck, DollarSign, Activity, BadgeCheck } from 'lucide-react';
 import Image from 'next/image';
 import { nexusBrain } from '@/lib/nexus-brain';
 import { AnalysisResult } from '@/lib/nexus-types';
@@ -19,8 +19,8 @@ import PaymentModal from '@/components/nexus/PaymentModal';
 import LegalModal from '@/components/nexus/LegalModal';
 import SupportWidget from '@/components/nexus/SupportWidget';
 import SurvivalGuide from '@/components/nexus/SurvivalGuide';
-
 import { useSoundFX } from '@/hooks/useSoundFX';
+import { ANALYTICS } from '@/lib/nexus-analytics';
 
 export default function NexusPage() {
   const { language, setLanguage, t } = useLanguage();
@@ -44,6 +44,9 @@ export default function NexusPage() {
       setLogs(prev => [...prev, "> ERROR: INPUT REQUIRED"]);
       return;
     }
+
+    // TRACK EVENT: ATTEMPT
+    ANALYTICS.SCAN_ATTEMPT(tokenInput);
 
     // Updated to allow Tickers (short names) for testing/demo purposes
     const isValidSolanaAddress = (address: string) => address.length > 1;
@@ -101,6 +104,9 @@ export default function NexusPage() {
 
       // Call the Real Brain with Language
       const data = await nexusBrain.analyze(tokenInput, language);
+
+      // TRACK EVENT: SUCCESS
+      ANALYTICS.SCAN_SUCCESS(tokenInput, data.riskLevel);
 
       // AUTO-REFUND LOGIC (Fair Play)
       if (data.findings.analyst.id === 'ERR') {
@@ -190,7 +196,11 @@ export default function NexusPage() {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onMouseEnter={playHover}
-              onClick={() => { playClick(); setShowAcademy(true); }}
+              onClick={() => {
+                playClick();
+                setShowAcademy(true);
+                ANALYTICS.OPEN_ACADEMY();
+              }}
               className="text-xs font-mono text-white border border-white/30 px-3 py-1 rounded hover:bg-white/10 flex items-center gap-2 pointer-events-auto bg-black/50 backdrop-blur"
             >
               <BadgeCheck size={14} className="text-blue-400" />
@@ -214,7 +224,11 @@ export default function NexusPage() {
             </motion.button>
 
             {/* Credit Balance / Buy Button */}
-            <CreditBalance onTopUp={() => { playClick(); setIsPaymentOpen(true); }} />
+            <CreditBalance onTopUp={() => {
+              playClick();
+              setIsPaymentOpen(true);
+              ANALYTICS.OPEN_PAYMENT();
+            }} />
           </div>
 
           <motion.div

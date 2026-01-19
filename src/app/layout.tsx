@@ -46,6 +46,7 @@ export const metadata: Metadata = {
 import { LanguageProvider } from "@/context/LanguageContext";
 import { CreditsProvider } from '@/context/CreditsContext';
 import { SolanaWalletProvider } from '@/context/SolanaWalletContext';
+import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
 
 import Link from "next/link";
 import Script from "next/script";
@@ -60,20 +61,8 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {/* Google Analytics */}
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-FL5LCYTQF7"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-
-            gtag('config', 'G-FL5LCYTQF7');
-          `}
-        </Script>
+        {/* EXTRACTED GA4 COMPONENT */}
+        <GoogleAnalytics GA_MEASUREMENT_ID="G-FL5LCYTQF7" />
 
         <SolanaWalletProvider>
           <CreditsProvider>
