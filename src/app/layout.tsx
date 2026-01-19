@@ -36,6 +36,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     type: "website",
   },
+  manifest: "/site.webmanifest",
   alternates: {
     languages: {
       'es-ES': 'https://scanner.wolfsfera.com/?lang=es',
