@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Gem, Zap, CheckCircle2, CreditCard, Wallet } from 'lucide-react';
+import { X, Gem, Zap, CheckCircle2, CreditCard, Wallet, ShieldCheck, ChevronRight, Loader2 } from 'lucide-react';
 import { useCredits } from '@/context/CreditsContext';
 import { useState, useEffect } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
@@ -257,14 +257,21 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                             </div>
                         )}
 
-                        {/* Anti-Drainer Guarantee Footer */}
-                        <div className="mt-6 pt-6 border-t border-white/10 flex items-start gap-3 opacity-60">
-                            <CheckCircle2 size={16} className="text-green-500 shrink-0 mt-0.5" />
-                            <p className="text-[10px] text-gray-400 leading-tight">
-                                <strong className="text-gray-300 block mb-1">100% SAFE / ANTI-DRAIN GUARANTEE</strong>
-                                Your funds are safu. This transaction is processed directly by the Solana Blockchain.
-                                Nexus Terminal is <span className="text-green-400">Non-Custodial</span> and never has access to your private keys or wallet balance.
-                            </p>
+                        {/* Anti-Drainer Guarantee Footer - UPDATED PER USER REQUEST */}
+                        <div className="mt-6 pt-4 border-t border-white/10">
+                            <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-lg p-3 flex gap-3 text-left">
+                                <ShieldCheck size={20} className="text-yellow-500 shrink-0" />
+                                <div>
+                                    <h4 className="text-[10px] uppercase font-bold text-yellow-500 mb-1">Security Notice / Aviso de Seguridad</h4>
+                                    <p className="text-[10px] text-gray-400 leading-relaxed font-mono">
+                                        Nexus Terminal does <span className="text-white">NOT</span> access your wallet.
+                                        Connection is established directly with the <span className="text-white">Solana Blockchain</span>.
+                                        We only receive the <span className="text-green-400">Confirmation Hash (OK)</span> of your payment.
+                                        <br />
+                                        <span className="opacity-70 italic mt-1 block">Tus claves privadas nunca tocan nuestra web. Solo recibimos la confirmación del pago.</span>
+                                    </p>
+                                </div>
+                            </div>
                         </div>
 
                     </motion.div>

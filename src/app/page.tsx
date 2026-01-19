@@ -224,11 +224,17 @@ export default function NexusPage() {
             </motion.button>
 
             {/* Credit Balance / Buy Button */}
-            <CreditBalance onTopUp={() => {
-              playClick();
-              setIsPaymentOpen(true);
-              ANALYTICS.OPEN_PAYMENT();
-            }} />
+            <div className="flex flex-col items-end gap-1">
+              <CreditBalance onTopUp={() => {
+                playClick();
+                setIsPaymentOpen(true);
+                ANALYTICS.OPEN_PAYMENT();
+              }} />
+              <div className="flex items-center gap-1 opacity-50 pr-2">
+                <Lock size={8} className="text-green-500" />
+                <span className="text-[9px] font-mono text-gray-500 tracking-wider">SECURE LINK</span>
+              </div>
+            </div>
           </div>
 
           <motion.div
