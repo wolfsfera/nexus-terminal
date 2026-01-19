@@ -4,14 +4,14 @@ export const dictionary = {
     es: {
         ui: {
             title: "SOLANA INTELLIGENCE",
-            subtitle: "TERMINAL DE MEMECOINS",
+            subtitle: "TERMINAL DE ANALISIS",
             placeholder: "BUSCAR (NOMBRE / CONTRACT ADDRESS)...",
             search_tip: "💡 CONSEJO: Para 100% de precisión, usa el Contract Address (CA).",
-            analyze_btn: "ESCANEAR SOLANA",
+            analyze_btn: "ESCANEAR MERCADO",
             analyzing: "SINTONIZANDO...",
             manual_btn: "MANUAL",
             logs_title: "REGISTRO DEL SISTEMA EN TIEMPO REAL",
-            footer: "NEXUS-OS v3.4 | NODO: WOLF-MAINNET | SEGURIDAD: ACTIVA",
+            footer: "NEXUS-OS v3.5 | NODO: WOLF-MAINNET | SEGURIDAD: ACTIVA",
             loading_agents: "INICIALIZANDO AGENTES...",
             waiting_input: "ESPERANDO OBJETIVO...",
             verdict_label: "VEREDICTO DE INTELIGENCIA",
@@ -21,7 +21,7 @@ export const dictionary = {
             close: "CERRAR",
             risk_levels: {
                 elite: "ELITE",
-                safe: "SEGURO",
+                safe: "FAVORABLE",
                 degen: "DEGEN",
                 danger: "PELIGRO",
                 critical: "CRÍTICO"
@@ -47,8 +47,8 @@ export const dictionary = {
             twitter: "BÚSQUEDA SOCIAL"
         },
         verdicts: {
-            elite: "💎 JOYA ELITE DETECTADA 💎",
-            safe: "ZONA DE ENTRADA SEGURA",
+            elite: "💎 ALTA PROBABILIDAD (ELITE) 💎",
+            safe: "CONDICIONES FAVORABLES",
             degen: "JUGADA DEGEN (ALTO RIESGO)",
             danger: "PELIGRO - BANDERAS ROJAS",
             critical: "ESTAFA / RUG PULL",
@@ -56,11 +56,11 @@ export const dictionary = {
             neutral: "NEUTRAL"
         },
         descriptions: {
-            elite: "ESTATUS ELITE. Todos los sistemas nominales. Indicadores raros de alta calidad detectados.",
-            safe: "El consenso indica legitimidad. Condiciones de entrada al mercado estándar cumplidas.",
-            degen: "Alto riesgo / alta recompensa. Apto solo para traders experimentados en volatilidad.",
-            danger: "Banderas rojas significativas detectadas. Problemas de contrato o liquidez. Proceda con extrema precaución.",
-            critical: "FALLO CRÍTICO. Múltiples agentes reportan fallos fatales (Honeypot, Riesgo de Rug). PROHIBIDO."
+            elite: "ESTATUS ELITE. Estadísticas muy superiores a la media. Recuerda: NADA es seguro en cripto.",
+            safe: "Estructura de liquidez sólida y contrato verificado. Riesgo estándar del mercado todavía aplica.",
+            degen: "Volatilidad extrema. Posible manipulación o baja liquidez. Solo para capital de riesgo.",
+            danger: "Banderas rojas significativas. Problemas de contrato o desarrollador sospechoso.",
+            critical: "FALLO CRÍTICO. Múltiples agentes reportan estafa inminente (Honeypot, Rug Risk)."
         },
         report: {
             title: "REPORTE DE SEGURIDAD NEXUS",
@@ -72,8 +72,8 @@ export const dictionary = {
             uplink_header: "ENLACE DE INTELIGENCIA EXTERNA",
             verdict_header: "VEREDICTO DE INTELIGENCIA",
             score_label: "PUNTUACIÓN NEXUS",
-            disclaimer_title: "DESCARGO DE RESPONSABILIDAD:",
-            disclaimer_text: "Este reporte es generado por un sistema de IA automatizado ('Wolfsfera Nexus'). NO constituye asesoramiento financiero. Las memecoins son extremadamente volátiles. El estado 'Seguro' no garantiza inmunidad ante estafas. TÚ ERES RESPONSABLE DE TUS PROPIAS OPERACIONES.",
+            disclaimer_title: "AVISO DE RIESGO:",
+            disclaimer_text: "Nexus Terminal es una herramienta de análisis estadístico, NO un asesor financiero. El mercado crypto es altamente manipulable. Even 'Favorable' tokens can go to zero. PROTEGE TU CAPITAL.",
             security_error: "CONEXIÓN DE SEGURIDAD EN ESPERA (POSIBLE PROTECCIÓN ANTI-BOT O RED SATURADA). ESTO NO IMPLICA RIESGO, SOLO AUSENCIA DE DATOS.",
             firewall: {
                 honeypot: "VERIFICACIÓN HONEYPOT",
@@ -94,11 +94,11 @@ export const dictionary = {
             subtitle: "MEMECOIN TERMINAL",
             placeholder: "SEARCH (NAME / CONTRACT ADDRESS)...",
             search_tip: "💡 PRO TIP: For 100% accuracy, use Contract Address (CA).",
-            analyze_btn: "SCAN SOLANA",
+            analyze_btn: "SCAN MARKET",
             analyzing: "TUNING IN...",
             manual_btn: "MANUAL",
             logs_title: "REAL-TIME SYSTEM LOGS",
-            footer: "NEXUS-OS v3.4 | NODE: WOLF-MAINNET | SECURITY: ACTIVE",
+            footer: "NEXUS-OS v3.5 | NODE: WOLF-MAINNET | SECURITY: ACTIVE",
             loading_agents: "INITIALIZING AGENTS...",
             waiting_input: "AWAITING TARGET...",
             verdict_label: "INTELLIGENCE VERDICT",
@@ -108,7 +108,7 @@ export const dictionary = {
             close: "CLOSE",
             risk_levels: {
                 elite: "ELITE",
-                safe: "SAFE",
+                safe: "FAVORABLE",
                 degen: "DEGEN",
                 danger: "DANGER",
                 critical: "CRITICAL"
@@ -134,8 +134,8 @@ export const dictionary = {
             twitter: "SOCIAL SEARCH"
         },
         verdicts: {
-            elite: "💎 ELITE GEM DETECTED 💎",
-            safe: "SAFE - ENTRY ZONE",
+            elite: "💎 HIGH PROBABILITY (ELITE) 💎",
+            safe: "FAVORABLE CONDITIONS",
             degen: "DEGEN PLAY (HIGH RISK)",
             danger: "DANGER - RED FLAGS",
             critical: "SCAM / RUG PULL",
@@ -143,11 +143,11 @@ export const dictionary = {
             neutral: "NEUTRAL"
         },
         descriptions: {
-            elite: "ELITE STATUS. All systems nominal. Rare indicators of high quality detected.",
-            safe: "Consensus indicates legitimacy. Standard market entry conditions met.",
-            degen: "High risk / high reward environment. Suitable for experienced volatility traders only.",
-            danger: "Significant red flags detected. Smart contract or liquidity issues present. Proceed with extreme caution.",
-            critical: "CRITICAL FAILURE. Multiple agents report fatal flaws (Honeypot, Rug Risk). PROHIBITED."
+            elite: "ELITE STATUS. Statistics are superior. Remember: NOTHING is safe in crypto.",
+            safe: "Solid liquidity structure and verified contract. Standard market risks still apply.",
+            degen: "Extreme volatility. Possible manipulation or low liquidity. Venture capital only.",
+            danger: "Significant red flags detected. Contract issues or suspicious developer.",
+            critical: "CRITICAL FAILURE. Multiple agents report imminent scam (Honeypot, Rug Risk)."
         },
         report: {
             title: "NEXUS SECURITY REPORT",
@@ -159,8 +159,8 @@ export const dictionary = {
             uplink_header: "EXTERNAL INTELLIGENCE UPLINK",
             verdict_header: "INTELLIGENCE VERDICT",
             score_label: "NEXUS SCORE",
-            disclaimer_title: "DISCLAIMER & LIABILITY WAIVER:",
-            disclaimer_text: "This report is generated by an automated AI system ('Wolfsfera Nexus'). It does NOT constitute financial advice. Memecoins are extremely volatile. 'Safe' status does not guarantee immunity to rugs. YOU ARE RESPONSIBLE FOR YOUR OWN TRADES.",
+            disclaimer_title: "RISK WARNING:",
+            disclaimer_text: "Nexus Terminal is a statistical analysis tool, NOT a financial advisor. The crypto market is highly manipulable. Even 'Favorable' tokens can go to zero. PROTECT YOUR CAPITAL.",
             security_error: "SECURITY DATA UNAVAILABLE (AUDIT API TIMEOUT OR UNSUPPORTED CHAIN)",
             firewall: {
                 honeypot: "HONEYPOT CHECK",

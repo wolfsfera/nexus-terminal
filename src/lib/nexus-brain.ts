@@ -224,8 +224,10 @@ function analyzeTokenData(pair: DexScreenerPair, tokenInput: string, existingLog
     }
 
     // 2. SENTINEL: Volatility & Bot Activity
+    // 2. SENTINEL: Volatility & Bot Activity
     const volume = pair.volume?.h24 || 0;
     const volToLiq = liquidity > 0 ? volume / liquidity : 0;
+    let isZombie = false;
 
     if (volToLiq > 10) {
         score -= 20;
@@ -243,6 +245,17 @@ function analyzeTokenData(pair: DexScreenerPair, tokenInput: string, existingLog
             message: isEs ? "MERCADO MUERTO" : "MARKET DEAD",
             details: isEs ? "Cero volumen en 24h." : "Zero volume in 24h."
         };
+    } else if (volToLiq < 0.05 && (Date.now() - (pair.pairCreatedAt || 0)) > 86400000) {
+        // ZOMBIE CHECK (Integrado aquí para evitar bonus de "Volumen Natural")
+        // Si Vol/Liq < 5% y tiene más de 24 horas -> ZOMBIE
+        isZombie = true;
+        score -= 30;
+        findings.sentinel = {
+            id: "VOL-ZOMBIE",
+            level: "DANGER",
+            message: isEs ? "TOKEN ZOMBIE" : "ZOMBIE TOKEN",
+            details: isEs ? "Volumen muerto (<5% Liq). Atrapado." : "Dead volume (<5% Liq). Trapped."
+        };
     } else {
         score += 15;
         findings.sentinel = {
@@ -256,14 +269,8 @@ function analyzeTokenData(pair: DexScreenerPair, tokenInput: string, existingLog
     // 3. SHADOW: Age & Security (Merged with Audit Data)
     const ageHours = pair.pairCreatedAt ? (Date.now() - pair.pairCreatedAt) / (1000 * 60 * 60) : 0;
 
-    // ZOMBIE DETECTOR (Moved here to access ageHours)
-    if (volToLiq < 0.05 && ageHours > 24) {
-        score -= 30;
-        findings.sentinel.level = 'DANGER';
-        findings.sentinel.message = isEs ? "TOKEN ZOMBIE" : "ZOMBIE TOKEN";
-        findings.sentinel.details = isEs ? `Volumen muerto (<5% Liq).` : `Dead volume (<5% Liq).`;
-        logs.push(`> SENTINEL ALERT: ZOMBIE DETECTED.`);
-    }
+    // (Removed separate Zombie check from here)
+
 
     // Default Shadow Finding based on Age
     if (ageHours < 1) {
@@ -372,9 +379,13 @@ function analyzeTokenData(pair: DexScreenerPair, tokenInput: string, existingLog
     let verdict = "NEUTRAL";
     let riskLevel: RiskLevel = "DEGEN";
 
-    // Force CAPS based on Critical Flags
+    // Force CAPS based on Critical Flags & ZOMBIE Status
     if (security?.is_honeypot === "1") score = 0;
     if (directReport?.overallRisk === 'CRITICAL') score = 0;
+    if (isZombie) {
+        score = Math.min(score, 55); // HARD CAP FOR ZOMBIES. Never Safe.
+        logs.push(`> RISK ADJUSTMENT: ZOMBIE STATUS CAPPED SCORE AT 55.`);
+    }
 
     if (score >= 90) { verdict = dictionary[language].verdicts.elite; riskLevel = "ELITE"; }
     else if (score >= 70) { verdict = dictionary[language].verdicts.safe; riskLevel = "SAFE"; }

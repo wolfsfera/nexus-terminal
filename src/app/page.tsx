@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import AgentCard from '@/components/nexus/AgentCard';
 import ProbabilityDial from '@/components/nexus/ProbabilityDial';
 import InfoModal from '@/components/nexus/InfoModal';
 import ReportModal from '@/components/nexus/ReportModal';
 import AcademyModal from '@/components/nexus/AcademyModal';
-import { Play, Lock, BookOpen, ExternalLink, Globe, ShieldCheck, DollarSign, Activity, BadgeCheck } from 'lucide-react';
+import { Play, Lock, BookOpen, ExternalLink, Globe, ShieldCheck, DollarSign, Activity, BadgeCheck, Zap } from 'lucide-react';
 import Image from 'next/image';
 import { nexusBrain } from '@/lib/nexus-brain';
 import { AnalysisResult } from '@/lib/nexus-types';
@@ -514,8 +515,11 @@ export default function NexusPage() {
       {/* Footer / Logs - REPLACED BY TICKER */}
       <TrendingTicker />
 
-      {/* Legal Footer Link (Absolute Bottom Right, above ticker) */}
-      <div className="absolute bottom-12 right-4 z-40">
+      {/* Legal Footer & Oráculo Link */}
+      <div className="absolute bottom-12 right-4 z-40 flex flex-col items-end gap-2">
+        <Link href="/oraculo" className="text-[10px] font-black text-purple-500 hover:text-purple-400 transition-colors uppercase tracking-widest flex items-center gap-1 animate-pulse hover:animate-none">
+          <Zap size={12} /> PROYECTO ORÁCULO <span className="text-[8px] opacity-70 border border-purple-500 rounded px-1">BETA</span>
+        </Link>
         <button
           onClick={() => setIsLegalOpen(true)}
           className="text-[10px] text-gray-600 font-mono hover:text-gray-400 transition-colors uppercase tracking-widest"
