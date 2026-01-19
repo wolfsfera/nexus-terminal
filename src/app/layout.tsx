@@ -48,6 +48,7 @@ import { LanguageProvider } from "@/context/LanguageContext";
 import { CreditsProvider } from '@/context/CreditsContext';
 import { SolanaWalletProvider } from '@/context/SolanaWalletContext';
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
+import SafetyBanner from '@/components/common/SafetyBanner'; // NEW
 
 import Link from "next/link";
 import Script from "next/script";
@@ -60,8 +61,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-purple-500/30`}
       >
+        <SafetyBanner />
         {/* EXTRACTED GA4 COMPONENT */}
         <GoogleAnalytics GA_MEASUREMENT_ID="G-FL5LCYTQF7" />
 
