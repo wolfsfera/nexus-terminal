@@ -5,36 +5,22 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Flame, Crosshair, Radar, Zap, Trophy, Skull, Activity, Search } from 'lucide-react';
 import Image from 'next/image';
 
-// MOCK DATA FOR MVP VISUALIZATION
-const MOCK_FEED = [
-    { id: 1, ticker: 'TRUMPX', name: 'Trump X', time: '1s ago', liquidity: '$12k', risk: 'DEGEN', badge: '🔥 HOT' },
-    { id: 2, ticker: 'ELONMARS', name: 'Musk City', time: '3s ago', liquidity: '$45k', risk: 'SAFE', badge: '💎 GEM' },
-    { id: 3, ticker: 'SCAMCOIN', name: 'Not A Scam', time: '5s ago', liquidity: '$1k', risk: 'RUG', badge: '💀 RUN' },
-    { id: 4, ticker: 'PEPE2', name: 'Pepe Reborn', time: '8s ago', liquidity: '$150k', risk: 'ELITE', badge: '🚀 MOON' },
-    { id: 5, ticker: 'DOGEGF', name: 'Doge Gf', time: '12s ago', liquidity: '$8k', risk: 'DEGEN', badge: '🎲' },
-];
+// IMPORT HOOK
+import { useOraculoFeed } from '@/hooks/useOraculoFeed';
 
 export default function OraculoPage() {
-    const [feed, setFeed] = useState(MOCK_FEED);
+    const { feed, gem } = useOraculoFeed();
 
-    // SIMULATE LIVE FEED
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setFeed(prev => {
-                const newCoin = {
-                    id: Date.now(),
-                    ticker: ['GIGACHAD', 'BASED', 'WIFHAT', 'BONK2'][Math.floor(Math.random() * 4)],
-                    name: 'Generated Token',
-                    time: 'Just now',
-                    liquidity: `$${Math.floor(Math.random() * 50)}k`,
-                    risk: ['DEGEN', 'SAFE', 'RUG', 'ELITE'][Math.floor(Math.random() * 4)],
-                    badge: '🆕'
-                };
-                return [newCoin, ...prev.slice(0, 6)]; // Keep last 7 items
-            });
-        }, 3000);
-        return () => clearInterval(interval);
-    }, []);
+    // Highlight gem if found
+    const activeGem = gem || {
+        id: 'waiting',
+        ticker: 'SCANNING...',
+        name: 'Searching Mempool',
+        liquidity: '---',
+        risk: 'UNKNOWN' as const,
+        badge: '🔍',
+        score: 0
+    };
 
     return (
         <div className="min-h-screen bg-black text-white font-mono selection:bg-red-500/30 overflow-hidden relative">
@@ -80,7 +66,7 @@ export default function OraculoPage() {
                 {/* MAIN CONTENT GRID */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 min-h-0">
 
-                    {/* LEFT: LIVE FEED (The "Matrix") */}
+                    {/* LEFT: LIVE FEED (Real Data) */}
                     <div className="lg:col-span-4 bg-zinc-900/30 border border-white/10 rounded-2xl p-4 flex flex-col overflow-hidden relative">
                         <h2 className="text-sm font-bold text-red-500 mb-4 flex items-center gap-2 uppercase tracking-wider">
                             <Zap size={16} /> Live Mints (Real-Time)
@@ -95,27 +81,27 @@ export default function OraculoPage() {
                                         animate={{ opacity: 1, x: 0 }}
                                         exit={{ opacity: 0, scale: 0.9 }}
                                         className={`p-3 rounded-lg border flex items-center justify-between group cursor-pointer hover:bg-white/5 transition-all ${item.risk === 'RUG' ? 'border-red-500/30 bg-red-900/10' :
-                                                item.risk === 'SAFE' ? 'border-green-500/30 bg-green-900/10' :
-                                                    item.risk === 'ELITE' ? 'border-purple-500/50 bg-purple-900/20 shadow-[0_0_15px_rgba(168,85,247,0.2)]' :
-                                                        'border-white/10'
+                                            item.risk === 'SAFE' ? 'border-green-500/30 bg-green-900/10' :
+                                                item.risk === 'ELITE' ? 'border-purple-500/50 bg-purple-900/20 shadow-[0_0_15px_rgba(168,85,247,0.2)]' :
+                                                    'border-white/10'
                                             }`}
                                     >
                                         <div>
                                             <div className="flex items-center gap-2">
                                                 <span className="font-black text-white">{item.ticker}</span>
-                                                <span className="text-[10px] bg-white/10 px-1 rounded text-gray-400">{item.time}</span>
+                                                <span className="text-[10px] bg-white/10 px-1 rounded text-gray-400">{item.timeLabel}</span>
                                             </div>
                                             <div className="text-xs text-gray-500 font-mono flex gap-2">
                                                 <span>Liq: {item.liquidity}</span>
                                                 <span className="text-white/20">|</span>
-                                                <span>Vol: HIGH</span>
+                                                <span>Vol: {item.volume || '---'}</span>
                                             </div>
                                         </div>
                                         <div className="text-right">
                                             <div className={`text-xs font-bold px-2 py-0.5 rounded ${item.risk === 'RUG' ? 'bg-red-500 text-black' :
-                                                    item.risk === 'SAFE' ? 'bg-green-500 text-black' :
-                                                        item.risk === 'ELITE' ? 'bg-purple-500 text-white' :
-                                                            'bg-yellow-500 text-black'
+                                                item.risk === 'SAFE' ? 'bg-green-500 text-black' :
+                                                    item.risk === 'ELITE' ? 'bg-purple-500 text-white' :
+                                                        'bg-yellow-500 text-black'
                                                 }`}>{item.risk}</div>
                                             <div className="text-[10px] mt-1">{item.badge}</div>
                                         </div>
@@ -139,22 +125,37 @@ export default function OraculoPage() {
                                 <motion.div
                                     initial={{ scale: 0.8, opacity: 0 }}
                                     animate={{ scale: 1, opacity: 1 }}
+                                    key={activeGem.id}
                                     className="w-24 h-24 bg-yellow-400 rounded-full flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(250,204,21,0.5)] animate-bounce"
                                 >
                                     <Trophy size={48} className="text-black" />
                                 </motion.div>
 
                                 <h2 className="text-lg text-purple-400 font-mono tracking-widest mb-2">POSSIBLE GEM DETECTED</h2>
-                                <h1 className="text-6xl font-black text-white mb-2 tracking-tighter">$PEPE2</h1>
+                                <h1 className="text-6xl font-black text-white mb-2 tracking-tighter">${activeGem.ticker}</h1>
                                 <p className="text-gray-400 max-w-md mx-auto mb-8">
                                     High velocity mint. Dev wallet clean. Liquidity locked instantly.
                                     <span className="text-green-500 font-bold ml-2">Score: 92/100</span>
                                 </p>
 
-                                <button className="bg-red-600 hover:bg-red-500 text-white font-black text-xl px-12 py-4 rounded-xl shadow-[0_0_30px_rgba(220,38,38,0.5)] hover:shadow-[0_0_50px_rgba(220,38,38,0.8)] transition-all flex items-center gap-3 uppercase italic transform hover:scale-105 active:scale-95">
-                                    <Crosshair size={24} />
-                                    SNIPE NOW (BullX)
-                                </button>
+                                <div className="flex gap-4 justify-center">
+                                    <button
+                                        onClick={() => window.open(`http://localhost:3000/?scan=${activeGem.contractAddress}`, '_blank')}
+                                        className="bg-purple-600 hover:bg-purple-500 text-white font-black text-xl px-8 py-4 rounded-xl shadow-[0_0_30px_rgba(168,85,247,0.5)] hover:shadow-[0_0_50px_rgba(168,85,247,0.8)] transition-all flex items-center gap-3 uppercase italic transform hover:scale-105 active:scale-95"
+                                    >
+                                        <Search size={24} />
+                                        SCAN WITH NEXUS
+                                    </button>
+
+                                    <button
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(activeGem.contractAddress);
+                                        }}
+                                        className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold px-6 py-4 rounded-xl border border-white/10 flex items-center gap-2 uppercase transition-all"
+                                    >
+                                        COPY CA
+                                    </button>
+                                </div>
                             </div>
                         </div>
 

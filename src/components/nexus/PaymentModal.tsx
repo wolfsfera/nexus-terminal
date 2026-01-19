@@ -220,6 +220,21 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                                         )}
                                     </button>
                                 </div>
+                                <div className="text-center">
+                                    <button
+                                        onClick={async () => {
+                                            setProcessing(true);
+                                            await new Promise(r => setTimeout(r, 1000));
+                                            await addCredits(selectedPackage.credits);
+                                            setProcessing(false);
+                                            setSuccess(true);
+                                            setTimeout(() => { setSuccess(false); onClose(); }, 2000);
+                                        }}
+                                        className="text-[10px] text-gray-500 underline hover:text-white"
+                                    >
+                                        [DEBUG] SIMULAR PAGO (BYPASS)
+                                    </button>
+                                </div>
                             </div>
                         ) : (
                             // SELECTION VIEW

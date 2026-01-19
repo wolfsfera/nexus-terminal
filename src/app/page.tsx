@@ -2,38 +2,30 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation'; // NEW
 import { motion } from 'framer-motion';
-import AgentCard from '@/components/nexus/AgentCard';
-import ProbabilityDial from '@/components/nexus/ProbabilityDial';
-import InfoModal from '@/components/nexus/InfoModal';
-import ReportModal from '@/components/nexus/ReportModal';
-import AcademyModal from '@/components/nexus/AcademyModal';
-import { Play, Lock, BookOpen, ExternalLink, Globe, ShieldCheck, DollarSign, Activity, BadgeCheck, Zap } from 'lucide-react';
-import Image from 'next/image';
-import { nexusBrain } from '@/lib/nexus-brain';
-import { AnalysisResult } from '@/lib/nexus-types';
-import { useLanguage } from '@/context/LanguageContext';
-import { useCredits } from '@/context/CreditsContext';
-import TrendingTicker from '@/components/nexus/TrendingTicker';
-import CreditBalance from '@/components/nexus/CreditBalance';
-import PaymentModal from '@/components/nexus/PaymentModal';
-import LegalModal from '@/components/nexus/LegalModal';
-import SupportWidget from '@/components/nexus/SupportWidget';
-import SurvivalGuide from '@/components/nexus/SurvivalGuide';
-import { useSoundFX } from '@/hooks/useSoundFX';
-import { ANALYTICS } from '@/lib/nexus-analytics';
+// ... existing imports ...
 
 export default function NexusPage() {
   const { language, setLanguage, t } = useLanguage();
+  const searchParams = useSearchParams(); // NEW
+
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
-  const [showInfo, setShowInfo] = useState(false);
-  const [showAcademy, setShowAcademy] = useState(false); // NEW STATE
-  const [isReportOpen, setIsReportOpen] = useState(false);
-  const [logs, setLogs] = useState<string[]>([]);
+  // ... existing state ...
   const [tokenInput, setTokenInput] = useState('');
-  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
-  const [isLegalOpen, setIsLegalOpen] = useState(false);
+
+  // BRIDGE: Auto-Scan from Query Param
+  useEffect(() => {
+    const scanParam = searchParams.get('scan');
+    if (scanParam && !analyzing && !result) {
+      setTokenInput(scanParam);
+      // Optional: Auto-Trigger scan if we want to be aggressive
+      // handleAnalyze(); // Requires moving handleAnalyze definition up or using a ref
+    }
+  }, [searchParams]);
+
+  // ... rest of component ...
   const { spendCredits, addCredits } = useCredits();
 
   const { playHover, playClick, playScan, playAlert, playSuccess } = useSoundFX();
