@@ -23,6 +23,8 @@ export const oraculoBrain = {
         volume5m: number;
         txs5m: number;
         ageSeconds: number;
+        priceChange1h: number; // NEW
+        priceChange5m: number; // NEW
     }): SniperAnalysis => {
         let score = 50; // Start Neutral
         let badges: string[] = [];
@@ -39,6 +41,16 @@ export const oraculoBrain = {
         } else if (token.liquidity > 20000) {
             score += 20;
             badges.push("💧 Deep Liq");
+        }
+
+        // --- NEW: CRASH PROTECTION ---
+        if (token.priceChange1h < -50 || token.priceChange5m < -30) {
+            return {
+                score: 0,
+                risk: 'RUG',
+                badges: ['📉 CRASHING'],
+                reason: `Dumping hard (${token.priceChange1h.toFixed(1)}% 1h)`
+            };
         }
 
         // 2. MOMENTUM (Volume / Liquidity Ratio)

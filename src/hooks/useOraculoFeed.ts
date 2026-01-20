@@ -26,8 +26,9 @@ export function useOraculoFeed() {
     useEffect(() => {
         if (!isScanning) return;
 
-        // Poll every 3 seconds (simulating block time)
-        const interval = setInterval(fetchData, 3000);
+        // Poll every 15 seconds to respect API Rate Limits and avoid fallback to Mocks
+        // (GeckoTerminal Public API is limited, 3s triggers 429 errors easily)
+        const interval = setInterval(fetchData, 15000);
         return () => clearInterval(interval);
     }, [isScanning, fetchData]);
 

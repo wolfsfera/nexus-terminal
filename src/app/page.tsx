@@ -1,18 +1,47 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation'; // NEW
 import { motion } from 'framer-motion';
-// ... existing imports ...
+import { Globe, BadgeCheck, BookOpen, Lock, ShieldCheck, Play, ExternalLink, Zap, DollarSign, Activity } from 'lucide-react';
+import Image from 'next/image';
 
-export default function NexusPage() {
+// CONTEXT & HOOKS
+import { useLanguage } from '@/context/LanguageContext';
+import { useCredits } from '@/context/CreditsContext';
+import { useSoundFX } from '@/hooks/useSoundFX';
+import { nexusBrain, AnalysisResult } from '@/lib/nexus-brain';
+import { ANALYTICS } from '@/lib/nexus-analytics';
+
+// COMPONENTS
+import AgentCard from '@/components/nexus/AgentCard';
+import ProbabilityDial from '@/components/nexus/ProbabilityDial';
+import CreditBalance from '@/components/nexus/CreditBalance';
+import TrendingTicker from '@/components/nexus/TrendingTicker';
+import SurvivalGuide from '@/components/nexus/SurvivalGuide';
+import PaymentModal from '@/components/nexus/PaymentModal';
+import InfoModal from '@/components/nexus/InfoModal';
+import ReportModal from '@/components/nexus/ReportModal';
+import LegalModal from '@/components/nexus/LegalModal';
+import AcademyModal from '@/components/nexus/AcademyModal';
+import SupportWidget from '@/components/nexus/SupportWidget';
+
+function NexusContent() {
   const { language, setLanguage, t } = useLanguage();
   const searchParams = useSearchParams(); // NEW
 
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
-  // ... existing state ...
+  const [logs, setLogs] = useState<string[]>([]);
+
+  // Modals State
+  const [showAcademy, setShowAcademy] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
+  const [isReportOpen, setIsReportOpen] = useState(false);
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [isLegalOpen, setIsLegalOpen] = useState(false);
+
   const [tokenInput, setTokenInput] = useState('');
 
   // BRIDGE: Auto-Scan from Query Param
@@ -531,5 +560,13 @@ export default function NexusPage() {
       <LegalModal isOpen={isLegalOpen} onClose={() => setIsLegalOpen(false)} />
       <SupportWidget />
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-black flex items-center justify-center text-white font-mono">INITIALIZING NEXUS PROTOCOL...</div>}>
+      <NexusContent />
+    </Suspense>
   );
 }

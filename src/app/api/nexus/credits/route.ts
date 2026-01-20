@@ -6,16 +6,15 @@ const DEFAULT_CREDITS = 3;
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
-    const visitorId = searchParams.get('visitorId');
+    const walletAddress = searchParams.get('walletAddress');
 
-    if (!visitorId) {
-        return NextResponse.json({ error: 'Visitor ID Required' }, { status: 400 });
+    if (!walletAddress) {
+        return NextResponse.json({ error: 'Wallet Address Required' }, { status: 400 });
     }
 
     try {
-        // Check if user exists in KV
-        // Key format: "user:<visitorId>:credits"
-        const key = `user:${visitorId}:credits`;
+        // Key format: "user:<walletAddress>:credits"
+        const key = `user:${walletAddress}:credits`;
         const balance = await kv.get(key);
 
         if (balance === null) {
@@ -29,26 +28,24 @@ export async function GET(request: Request) {
 
     } catch (error) {
         console.error('KV Error:', error);
-        // Fallback if KV fails (e.g. invalid credentials): Return 0 to be safe (or 3 if generous)
-        // For security, we default to 0 to prevent abuse if DB takes a hit.
+        // Fallback
         return NextResponse.json({ balance: 0, error: 'Database Error' });
     }
 }
 
 export async function POST(request: Request) {
     const body = await request.json();
-    const { visitorId, action, amount } = body;
+    const { walletAddress, action, amount } = body;
 
-    if (!visitorId || !action) {
+    if (!walletAddress || !action) {
         return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
     }
 
-    const key = `user:${visitorId}:credits`;
+    const key = `user:${walletAddress}:credits`;
 
     try {
         let currentBalance = await kv.get<number>(key);
 
-        // Safety check: if for some reason key doesn't exist, treat as 0
         if (currentBalance === null) currentBalance = 0;
 
         if (action === 'spend') {
@@ -62,7 +59,6 @@ export async function POST(request: Request) {
         }
 
         if (action === 'add') {
-            // Top-up credits (e.g. after payment)
             const topUp = amount || 0;
             const newBalance = await kv.incrby(key, topUp);
             return NextResponse.json({ success: true, balance: newBalance });

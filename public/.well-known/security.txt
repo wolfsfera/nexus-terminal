@@ -1,4 +1,7 @@
 Contact: mailto:security@wolfsfera.com
 Expires: 2026-01-01T00:00:00.000Z
 Preferred-Languages: en, es
-Values: https://wolfsfera.com/values
+Canonical: https://scanner.wolfsfera.com/.well-known/security.txt
+Policy: https://wolfsfera.com/security-policy
+Encryption: https://wolfsfera.com/pgp-key.txt
+Acknowledgments: https://wolfsfera.com/security-hall-of-fame

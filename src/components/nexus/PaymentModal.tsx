@@ -6,7 +6,7 @@ import { useCredits } from '@/context/CreditsContext';
 import { useState, useEffect } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import { PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL, TransactionInstruction } from '@solana/web3.js';
 
 interface PaymentModalProps {
     isOpen: boolean;
@@ -56,6 +56,11 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                     fromPubkey: publicKey,
                     toPubkey: MERCHANT_WALLET,
                     lamports: selectedPackage.price * LAMPORTS_PER_SOL,
+                }),
+                new TransactionInstruction({
+                    keys: [{ pubkey: publicKey, isSigner: true, isWritable: true }],
+                    data: Buffer.from(`Nexus Credits: ${selectedPackage.label}`, "utf-8"),
+                    programId: new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcQb"),
                 })
             );
 
@@ -63,8 +68,8 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
             transaction.feePayer = publicKey;
 
             // 2. Send Transaction
-            // skipPreflight: true helps avoid simulation errors on congested public RPCs
-            signature = await sendTransaction(transaction, connection, { skipPreflight: true });
+            // Standard method allows Phantom to simulate and verify safety
+            signature = await sendTransaction(transaction, connection);
 
             // 3. Confirm with Timeout Race
             // Mobile wallets sometimes lose websocket connection on app switch

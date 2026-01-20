@@ -64,6 +64,10 @@ export const oraculoEngine = {
                 const liquidity = parseFloat(attrs.reserve_in_usd || '0');
                 const volume5m = parseFloat(attrs.volume_usd?.m5 || '0');
 
+                // NEW: Price Change Extraction
+                const priceChange1h = parseFloat(attrs.price_change_percentage?.h1 || '0');
+                const priceChange5m = parseFloat(attrs.price_change_percentage?.m5 || '0');
+
                 // Estimating TX count if not directly provided in list view accurately
                 const buys = attrs.transactions?.m5?.buys || 0;
                 const sells = attrs.transactions?.m5?.sells || 0;
@@ -74,7 +78,9 @@ export const oraculoEngine = {
                     liquidity,
                     volume5m,
                     txs5m,
-                    ageSeconds: diffSec
+                    ageSeconds: diffSec,
+                    priceChange1h,
+                    priceChange5m
                 });
 
                 return {

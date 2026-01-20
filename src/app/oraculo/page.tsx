@@ -19,7 +19,8 @@ export default function OraculoPage() {
         liquidity: '---',
         risk: 'UNKNOWN' as const,
         badge: '🔍',
-        score: 0
+        score: 0,
+        contractAddress: ''
     };
 
     return (
@@ -140,7 +141,7 @@ export default function OraculoPage() {
 
                                 <div className="flex gap-4 justify-center">
                                     <button
-                                        onClick={() => window.open(`http://localhost:3000/?scan=${activeGem.contractAddress}`, '_blank')}
+                                        onClick={() => window.open(`/?scan=${activeGem.contractAddress || ''}`, '_blank')}
                                         className="bg-purple-600 hover:bg-purple-500 text-white font-black text-xl px-8 py-4 rounded-xl shadow-[0_0_30px_rgba(168,85,247,0.5)] hover:shadow-[0_0_50px_rgba(168,85,247,0.8)] transition-all flex items-center gap-3 uppercase italic transform hover:scale-105 active:scale-95"
                                     >
                                         <Search size={24} />
@@ -149,7 +150,7 @@ export default function OraculoPage() {
 
                                     <button
                                         onClick={() => {
-                                            navigator.clipboard.writeText(activeGem.contractAddress);
+                                            navigator.clipboard.writeText(activeGem.contractAddress || '');
                                         }}
                                         className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold px-6 py-4 rounded-xl border border-white/10 flex items-center gap-2 uppercase transition-all"
                                     >

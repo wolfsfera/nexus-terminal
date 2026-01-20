@@ -1,5 +1,6 @@
 
 import { AnalysisResult, RiskLevel } from './nexus-types';
+export type { AnalysisResult };
 import { DexScreenerPair, dexscreener } from '../services/dexscreener';
 import { securityService, SecurityData } from '../services/security';
 import { solanaService, DirectSecurityReport } from '../services/solana-contract';
@@ -168,6 +169,42 @@ function analyzeTokenData(pair: DexScreenerPair, tokenInput: string, existingLog
 
     // 1. ANALYST: Liquidity Check (The Foundation)
     const liquidity = pair.liquidity?.usd || 0;
+
+    // --- NEW: CRASH DETECTION (ANTI-RUG) ---
+    // If price dumped > 90% in 24h or > 50% in 1h, it's a RUG.
+    const priceChange24h = pair.priceChange?.h24 || 0;
+    const priceChange1h = pair.priceChange?.h1 || 0;
+
+    if (priceChange24h < -90 || priceChange1h < -50) {
+        return {
+            score: 0,
+            riskLevel: 'CRITICAL',
+            verdict: "RUG PULL",
+            findings: {
+                analyst: {
+                    id: "CRASH-DUMP",
+                    level: "CRITICAL",
+                    message: isEs ? "DUMP MASIVO DETECTADO" : "MASSIVE DUMP DETECTED",
+                    details: isEs ? `Caída de ${priceChange24h.toFixed(1)}% en 24h.` : `Dropped ${priceChange24h.toFixed(1)}% in 24h.`
+                },
+                sentinel: {
+                    id: "VOL-PANIC",
+                    level: "CRITICAL",
+                    message: isEs ? "VENTA DE PÁNICO" : "PANIC SELLING",
+                    details: isEs ? "Presión de venta extrema." : "Extreme selling pressure."
+                },
+                shadow: {
+                    id: "RUG-CONFIRMED",
+                    level: "CRITICAL",
+                    message: "RUG PULL",
+                    details: isEs ? "El gráfico indica abandono total." : "Chart indicates total abandonment."
+                }
+            },
+            logs: [...logs, `> ⚠️ CRITICAL ALERT: PRICE CRASHED ${priceChange24h}% IN 24H.`, "> VERDICT: RUG PULL DETECTED."],
+            pairData: pair,
+            securityData: security
+        };
+    }
 
     // GHOST TOKEN CHECK (Inactive Pump.fun coins) - Modified for Direct Read compatibility
     // If we have direct read flags, we are NOT a ghost in the sense of 'unknown', but maybe 'dead market'.
