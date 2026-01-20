@@ -48,19 +48,15 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
         let signature = "";
 
         try {
-            // 1. Get Fresh Blockhash
-            const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+            // 1. Get Fresh Blockhash (Finalized for max safety)
+            const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('finalized');
 
+            // 2. Simple Transfer (No Memo = Perfect Simulation)
             const transaction = new Transaction().add(
                 SystemProgram.transfer({
                     fromPubkey: publicKey,
                     toPubkey: MERCHANT_WALLET,
                     lamports: selectedPackage.price * LAMPORTS_PER_SOL,
-                }),
-                new TransactionInstruction({
-                    keys: [{ pubkey: publicKey, isSigner: true, isWritable: true }],
-                    data: Buffer.from(`Nexus Credits: ${selectedPackage.label}`, "utf-8"),
-                    programId: new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcQb"),
                 })
             );
 
