@@ -206,6 +206,24 @@ function analyzeTokenData(pair: DexScreenerPair, tokenInput: string, existingLog
         };
     }
 
+    // --- MOMENTUM CHECKS (Soft Dump / Bleed) ---
+    if (priceChange24h < -30) {
+        score -= 40; // Heavy Penalty
+        findings.analyst = {
+            id: "TREND-BEAR-CRIT",
+            level: "DANGER",
+            message: isEs ? "TENDENCIA MUY BAJISTA" : "HEAVY DUMPING",
+            details: isEs ? `Caída del ${priceChange24h.toFixed(1)}% (24h). Sangrando.` : `Down ${priceChange24h.toFixed(1)}% (24h). Bleeding.`
+        };
+        logs.push(`> ANALYSIS: HEAVY NEGATIVE MOMENTUM (${priceChange24h}%)`);
+    } else if (priceChange24h < -10) {
+        score -= 15; // Moderate Penalty
+        // Dont overwrite findings unless empty, just log it and reduce score
+        logs.push(`> ANALYSIS: BEARISH TREND (${priceChange24h}%)`);
+    } else if (priceChange24h > 20) {
+        score += 10; // Positive Momentum Bonus
+    }
+
     // GHOST TOKEN CHECK (Inactive Pump.fun coins) - Modified for Direct Read compatibility
     // If we have direct read flags, we are NOT a ghost in the sense of 'unknown', but maybe 'dead market'.
     if (liquidity < 100) {
