@@ -16,21 +16,27 @@ export function CreditsProvider({ children }: { children: ReactNode }) {
     const [balance, setBalance] = useState<number>(0);
     const [isLoaded, setIsLoaded] = useState(false);
 
-    // Sync Credits with Wallet Address
+    // Initial Load
     useEffect(() => {
         const fetchCredits = async () => {
             if (!publicKey) {
-                setBalance(0); // No wallet = No credits (Guest mode limits)
+                // GUEST MODE (LocalStorage)
+                const saved = localStorage.getItem('nexus_guest_credits');
+                if (saved === null) {
+                    localStorage.setItem('nexus_guest_credits', '3'); // 3 Free Scans
+                    setBalance(3);
+                } else {
+                    setBalance(parseInt(saved, 10));
+                }
                 setIsLoaded(true);
                 return;
             }
 
+            // WALLET MODE (Server)
             const walletAddress = publicKey.toBase58();
             try {
-                // Fetch Server Balance using Wallet Address
                 const res = await fetch(`/api/nexus/credits?walletAddress=${walletAddress}`);
                 const data = await res.json();
-
                 if (data.balance !== undefined) {
                     setBalance(data.balance);
                 }
@@ -45,13 +51,9 @@ export function CreditsProvider({ children }: { children: ReactNode }) {
     }, [publicKey]);
 
     const addCredits = async (amount: number) => {
-        if (!publicKey) return;
+        if (!publicKey) return; // Guests cannot buy credits without connecting
         const walletAddress = publicKey.toBase58();
-
-        // Optimistic UI update
         setBalance(prev => prev + amount);
-
-        // Sync with Server using Wallet Address
         await fetch('/api/nexus/credits', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -60,35 +62,35 @@ export function CreditsProvider({ children }: { children: ReactNode }) {
     };
 
     const spendCredits = async (amount: number): Promise<boolean> => {
+        if (balance < amount) return false;
+
+        // Optimistic Update
+        setBalance(prev => prev - amount);
+
         if (!publicKey) {
-            // Can't spend if not connected
-            return false;
+            // GUEST MODE SPEND
+            const newBalance = Math.max(0, balance - amount);
+            localStorage.setItem('nexus_guest_credits', newBalance.toString());
+            return true;
         }
+
+        // WALLET MODE SPEND
         const walletAddress = publicKey.toBase58();
-
-        if (balance >= amount) {
-            // Optimistic UI check
-            setBalance(prev => prev - amount);
-
-            // Server Sync
-            try {
-                const res = await fetch('/api/nexus/credits', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ walletAddress, action: 'spend', amount })
-                });
-                const data = await res.json();
-                if (!data.success) {
-                    // Revert if server says no
-                    setBalance(prev => prev + amount);
-                    return false;
-                }
-                return true;
-            } catch (e) {
-                return true; // Soft fail on network error
+        try {
+            const res = await fetch('/api/nexus/credits', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ walletAddress, action: 'spend', amount })
+            });
+            const data = await res.json();
+            if (!data.success) {
+                setBalance(prev => prev + amount); // Revert
+                return false;
             }
+            return true;
+        } catch (e) {
+            return true; // Consider success if network fails to avoid blocking user
         }
-        return false;
     };
 
     return (
