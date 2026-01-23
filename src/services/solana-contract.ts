@@ -49,13 +49,17 @@ export const solanaService = {
                 const pubKey = new PublicKey(contractAddress);
 
                 // Fetch Mint Account Info directly using SPL Token logic
-                console.log(`[DEBUG] Fetching Mint info from ${endpoint}...`);
+
                 const mintInfo = await getMint(connection, pubKey);
-                console.log(`[DEBUG] Mint Info Retrieved:`, {
+
+                // Debug log moved to console properly if needed, cleaning up the object literal mess
+                /*
+                console.log("Mint Info Fetched:", {
                     supply: mintInfo.supply.toString(),
                     mintAuth: mintInfo.mintAuthority?.toBase58(),
                     freezeAuth: mintInfo.freezeAuthority?.toBase58()
                 });
+                */
 
                 // Fetch Metaplex Metadata (Name, Symbol)
                 let name = "UNKNOWN";

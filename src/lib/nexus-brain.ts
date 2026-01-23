@@ -170,12 +170,16 @@ function analyzeTokenData(pair: DexScreenerPair, tokenInput: string, existingLog
     // 1. ANALYST: Liquidity Check (The Foundation)
     const liquidity = pair.liquidity?.usd || 0;
 
-    // --- NEW: CRASH DETECTION (ANTI-RUG) ---
-    // If price dumped > 90% in 24h or > 50% in 1h, it's a RUG.
+    // --- NEW: CRASH DETECTION (ANTI-RUG V2 - AGGRESSIVE) ---
+    // Expanded logic to catch 'soft rugs' and 'live crashes' earlier.
     const priceChange24h = pair.priceChange?.h24 || 0;
+    const priceChange6h = pair.priceChange?.h6 || 0;
     const priceChange1h = pair.priceChange?.h1 || 0;
+    const priceChange5m = pair.priceChange?.m5 || 0;
 
-    if (priceChange24h < -90 || priceChange1h < -50) {
+    // RULE 1: MASTER CRASH (The Token is Dead)
+    // -50% in 24h OR -30% in 1h is effectively a rug in memecoins.
+    if (priceChange24h < -50 || priceChange6h < -40 || priceChange1h < -30) {
         return {
             score: 0,
             riskLevel: 'CRITICAL',
@@ -184,26 +188,39 @@ function analyzeTokenData(pair: DexScreenerPair, tokenInput: string, existingLog
                 analyst: {
                     id: "CRASH-DUMP",
                     level: "CRITICAL",
-                    message: isEs ? "DUMP MASIVO DETECTADO" : "MASSIVE DUMP DETECTED",
-                    details: isEs ? `Caída de ${priceChange24h.toFixed(1)}% en 24h.` : `Dropped ${priceChange24h.toFixed(1)}% in 24h.`
+                    message: isEs ? "DUMP MASIVO CONFIRMADO" : "MASSIVE DUMP CONFIRMED",
+                    details: isEs ? `Caída crítica: ${priceChange24h.toFixed(1)}% (24h) / ${priceChange1h.toFixed(1)}% (1h).` : `Critical drop: ${priceChange24h.toFixed(1)}% (24h) / ${priceChange1h.toFixed(1)}% (1h).`
                 },
                 sentinel: {
                     id: "VOL-PANIC",
                     level: "CRITICAL",
-                    message: isEs ? "VENTA DE PÁNICO" : "PANIC SELLING",
-                    details: isEs ? "Presión de venta extrema." : "Extreme selling pressure."
+                    message: isEs ? "SALIDA DE EMERGENCIA" : "EMERGENCY EXIT",
+                    details: isEs ? "Todos están vendiendo. Huye." : "Everyone is selling. Run."
                 },
                 shadow: {
                     id: "RUG-CONFIRMED",
                     level: "CRITICAL",
                     message: "RUG PULL",
-                    details: isEs ? "El gráfico indica abandono total." : "Chart indicates total abandonment."
+                    details: isEs ? "Estructura de mercado rota." : "Market structure broken."
                 }
             },
-            logs: [...logs, `> ⚠️ CRITICAL ALERT: PRICE CRASHED ${priceChange24h}% IN 24H.`, "> VERDICT: RUG PULL DETECTED."],
+            logs: [...logs, `> ⚠️ CRITICAL ALERT: PRICE CRASHED (24h: ${priceChange24h}%, 1h: ${priceChange1h}%).`, "> VERDICT: RUG PULL detected."],
             pairData: pair,
             securityData: security
         };
+    }
+
+    // RULE 2: LIVE CRASH (Happening NOW)
+    // If scanning during the rug, m5 will be red.
+    if (priceChange5m < -15) {
+        score = 0; // Immediate Score Kill
+        findings.analyst = {
+            id: "LIVE-CRASH",
+            level: "CRITICAL",
+            message: isEs ? "COLAPSO EN TIEMPO REAL" : "LIVE CRASH DETECTED",
+            details: isEs ? `Cayendo un ${priceChange5m.toFixed(1)}% en 5 minutos.` : `Dropping ${priceChange5m.toFixed(1)}% in 5 minutes.`
+        };
+        logs.push(`> 🚨 URGENT: LIVE PRICE CRASH DETECTED (${priceChange5m}% in 5m).`);
     }
 
     // --- MOMENTUM CHECKS (Soft Dump / Bleed) ---
@@ -222,6 +239,47 @@ function analyzeTokenData(pair: DexScreenerPair, tokenInput: string, existingLog
         logs.push(`> ANALYSIS: BEARISH TREND (${priceChange24h}%)`);
     } else if (priceChange24h > 20) {
         score += 10; // Positive Momentum Bonus
+    }
+
+    // --- ZOMBIE TOKEN CHECK (The "Running Dead" Logic) ---
+    // Problem: Tokens like TERRA have high liquidity ($30k+) but ZERO volume because nobody can sell or interest died.
+    // Solution: Aggressive Vol/Liq ratio check for older tokens.
+
+    // 1. Calculate ratios
+    const volume24h = pair.volume?.h24 || 0;
+    const ratio = liquidity > 0 ? (volume24h / liquidity) : 0;
+    const isOld = (pair.pairCreatedAt && (Date.now() - pair.pairCreatedAt) > 86400000); // older than 24h
+
+    // 2. The Zombie Trap
+    if (liquidity > 5000 && volume24h < 500 && isOld) {
+        return {
+            score: 0,
+            riskLevel: 'CRITICAL',
+            verdict: "ZOMBIE TOKEN",
+            findings: {
+                analyst: {
+                    id: "ZOMBIE-LIQ",
+                    level: "CRITICAL",
+                    message: isEs ? "CAPITAL CONGELADO" : "FROZEN CAPITAL",
+                    details: isEs ? `Tiene liquidez ($${liquidity.toLocaleString()}) pero nadie opera.` : `Has liquidity ($${liquidity.toLocaleString()}) but zero trading.`
+                },
+                sentinel: {
+                    id: "VOL-GRAVEYARD",
+                    level: "CRITICAL",
+                    message: isEs ? "ACTIVIDAD CERO" : "ZERO ACTIVITY",
+                    details: isEs ? "Volumen de 24h inexistente (<$500). Muerto." : "Non-existent 24h volume (<$500). Dead."
+                },
+                shadow: {
+                    id: "ZOMBIE-CONFIRMED",
+                    level: "CRITICAL",
+                    message: "ZOMBIE",
+                    details: isEs ? "Proyecto abandonado o venta bloqueada." : "Project abandoned or selling blocked."
+                }
+            },
+            logs: [...logs, `> ⚠️ ZOMBIE ALERT: HIGH LIQUIDITY ($${liquidity}) BUT DEAD VOLUME.`, "> VERDICT: ZOMBIE TOKEN DETECTED."],
+            pairData: pair,
+            securityData: security
+        };
     }
 
     // GHOST TOKEN CHECK (Inactive Pump.fun coins) - Modified for Direct Read compatibility

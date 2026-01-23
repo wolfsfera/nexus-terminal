@@ -29,6 +29,7 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [selectedPackage, setSelectedPackage] = useState<typeof PACKAGES[0] | null>(null);
+    const [balance, setBalance] = useState<number | null>(null);
 
     // Reset state on close
     useEffect(() => {
@@ -37,11 +38,32 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
             setError(null);
             setSuccess(false);
             setSelectedPackage(null);
+            setBalance(null);
         }
     }, [isOpen]);
 
+    // Fetch SOL Balance securely
+    useEffect(() => {
+        if (publicKey && connection && isOpen) {
+            connection.getBalance(publicKey).then((lamports) => {
+                setBalance(lamports / LAMPORTS_PER_SOL);
+            }).catch(err => console.error("Error fetching balance:", err));
+        }
+    }, [publicKey, connection, isOpen]);
+
     const handleConfirmPayment = async () => {
         if (!publicKey || !selectedPackage) return;
+
+        // STRICT BALANCE CHECK (Phantom "Malicious" Fix)
+        // If user cannot pay, we MUST block the tx to prevent Phantom from simulating a failure.
+        const priceInSol = selectedPackage.price;
+        const gasBuffer = 0.002; // Safe buffer for gas
+        const requiredSol = priceInSol + gasBuffer;
+
+        if (balance === null || balance < requiredSol) {
+            setError(`FONDOS INSUFICIENTES. Necesitas al menos ${requiredSol.toFixed(3)} SOL para cubrir el precio + gas.`);
+            return;
+        }
 
         setProcessing(true);
         setError(null);
@@ -100,7 +122,7 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
 
             // AGGRESSIVE OPTIMISTIC FIX:
             if (signature) {
-                console.log("Tx sent but confirmation failed. Granting credits optimistically.");
+
                 await addCredits(selectedPackage.credits);
                 setSuccess(true);
                 setTimeout(() => {
@@ -156,8 +178,13 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                         </div>
 
                         {/* Wallet Connect Status */}
-                        <div className="flex justify-center mb-6">
+                        <div className="flex flex-col items-center justify-center mb-6 gap-2">
                             <WalletMultiButton className="!bg-purple-900 hover:!bg-purple-800 !font-mono !font-bold" />
+                            {balance !== null && (
+                                <p className="text-[10px] text-gray-500 font-mono">
+                                    SALDO: <span className={balance < 0.05 ? "text-yellow-500" : "text-green-500"}>{balance.toFixed(4)} SOL</span>
+                                </p>
+                            )}
                         </div>
 
                         {/* Content */}
@@ -190,7 +217,9 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
 
                                 <div className="flex justify-between items-center px-4 py-3 bg-white/5 rounded-xl border border-white/10">
                                     <span className="text-gray-400 text-sm">Total a Pagar:</span>
-                                    <span className="text-xl font-bold text-white font-mono">{selectedPackage.price} SOL</span>
+                                    <span className={`text-xl font-bold font-mono ${(balance !== null && balance < selectedPackage.price) ? "text-red-500" : "text-white"}`}>
+                                        {selectedPackage.price} SOL
+                                    </span>
                                 </div>
 
                                 {error && (
@@ -208,14 +237,16 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                                     </button>
                                     <button
                                         onClick={handleConfirmPayment}
-                                        disabled={processing}
-                                        className="p-4 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold transition-colors flex justify-center items-center gap-2 shadow-[0_0_20px_rgba(168,85,247,0.4)] disabled:opacity-50 disabled:cursor-not-allowed"
+                                        disabled={processing || (balance !== null && balance < (selectedPackage.price + 0.002))}
+                                        className="p-4 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold transition-colors flex justify-center items-center gap-2 shadow-[0_0_20px_rgba(168,85,247,0.4)] disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale"
                                     >
                                         {processing ? (
                                             <>
                                                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                                                 PROCESANDO...
                                             </>
+                                        ) : (balance !== null && balance < (selectedPackage.price + 0.002)) ? (
+                                            <>SALDO INSUFICIENTE</>
                                         ) : (
                                             <>CONFIRMAR PAGO <Zap size={18} /></>
                                         )}

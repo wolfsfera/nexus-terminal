@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation'; // NEW
 import { motion } from 'framer-motion';
-import { Globe, BadgeCheck, BookOpen, Lock, ShieldCheck, Play, ExternalLink, Zap, DollarSign, Activity } from 'lucide-react';
+import { Globe, BadgeCheck, BookOpen, Lock, ShieldCheck, Play, ExternalLink, Zap, DollarSign, Activity, Calculator } from 'lucide-react';
 import Image from 'next/image';
 
 // CONTEXT & HOOKS
@@ -13,6 +13,9 @@ import { useCredits } from '@/context/CreditsContext';
 import { useSoundFX } from '@/hooks/useSoundFX';
 import { nexusBrain, AnalysisResult } from '@/lib/nexus-brain';
 import { ANALYTICS } from '@/lib/nexus-analytics';
+
+// COMPONENTS
+
 
 // COMPONENTS
 import AgentCard from '@/components/nexus/AgentCard';
@@ -26,6 +29,9 @@ import ReportModal from '@/components/nexus/ReportModal';
 import LegalModal from '@/components/nexus/LegalModal';
 import AcademyModal from '@/components/nexus/AcademyModal';
 import SupportWidget from '@/components/nexus/SupportWidget';
+import DidYouKnow from '@/components/nexus/DidYouKnow';
+import CalculatorModal from '@/components/nexus/CalculatorModal';
+// ... (rest of imports)
 
 function NexusContent() {
   const { language, setLanguage, t } = useLanguage();
@@ -41,6 +47,7 @@ function NexusContent() {
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [isLegalOpen, setIsLegalOpen] = useState(false);
+  const [showCalculator, setShowCalculator] = useState(false);
 
   const [tokenInput, setTokenInput] = useState('');
 
@@ -174,6 +181,8 @@ function NexusContent() {
   return (
     <div className="min-h-screen bg-black text-white font-sans selection:bg-gold-primary/30 overflow-x-hidden relative scanlines">
 
+
+
       {/* Dynamic Background */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <Image
@@ -195,6 +204,7 @@ function NexusContent() {
       {/* NEW ACADEMY MODAL */}
       <AcademyModal isOpen={showAcademy} onClose={() => setShowAcademy(false)} />
 
+      {/* Main Container */}
       <div className="relative z-10 container mx-auto px-4 pt-4 pb-20 min-h-screen flex flex-col">
 
         {/* 3D Logo Header - Compact Version */}
@@ -232,7 +242,19 @@ function NexusContent() {
           </div>
 
           {/* Right Side Controls (Manual + Credits) */}
-          <div className="absolute right-0 top-0 md:right-4 md:top-4 z-30 flex items-center gap-4">
+          <div className="absolute right-0 top-0 md:right-4 md:top-4 z-30 flex items-center gap-2 md:gap-4">
+
+            {/* CALCULATOR BUTTON (NEW) */}
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onMouseEnter={playHover}
+              onClick={() => { playClick(); setShowCalculator(true); }}
+              className="text-xs font-mono text-green-400 border border-green-500/30 px-3 py-1 rounded hover:bg-green-500/10 flex items-center gap-2 pointer-events-auto bg-black/50 backdrop-blur"
+            >
+              <Calculator size={14} />
+              <span className="hidden md:inline">P&L</span>
+            </motion.button>
             {/* Info Button */}
             <motion.button
               whileHover={{ scale: 1.1 }}
@@ -263,10 +285,10 @@ function NexusContent() {
             initial={{ opacity: 0, scale: 0.9, y: -30 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="relative w-32 h-32 md:w-40 md:h-40 -mb-4 drop-shadow-[0_0_20px_rgba(212,175,55,0.3)] mt-8 md:mt-0"
+            className="relative w-32 h-32 md:w-40 md:h-40 -mb-4 drop-shadow-[0_0_25px_rgba(0,255,255,0.4)] mt-8 md:mt-0"
           >
             <Image
-              src="/images/nexus/logo-3d.png"
+              src="/images/nexus/logo-retro.png"
               alt="Wolfsfera Nexus Logo"
               fill
               priority
@@ -439,7 +461,7 @@ function NexusContent() {
                   {/* 🌊 WATERMARK (Wolfsfera Brand) */}
                   <div className="absolute right-[-20px] bottom-[-20px] opacity-[0.08] pointer-events-none z-0">
                     <Image
-                      src="/images/nexus/logo-3d.png"
+                      src="/images/nexus/logo-retro.png"
                       alt="Watermark"
                       width={200}
                       height={200}
@@ -528,6 +550,8 @@ function NexusContent() {
             )}
           </div>
         </div>
+        <DidYouKnow />
+
       </div>
 
       {/* SEO Content Section */}
@@ -558,6 +582,8 @@ function NexusContent() {
       />
       <PaymentModal isOpen={isPaymentOpen} onClose={() => setIsPaymentOpen(false)} />
       <LegalModal isOpen={isLegalOpen} onClose={() => setIsLegalOpen(false)} />
+      <AcademyModal isOpen={showAcademy} onClose={() => setShowAcademy(false)} />
+      <CalculatorModal isOpen={showCalculator} onClose={() => setShowCalculator(false)} />
       <SupportWidget />
     </div>
   );

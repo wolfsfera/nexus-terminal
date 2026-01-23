@@ -1,8 +1,29 @@
 'use client';
 
+import { usePathname, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
+import { useEffect } from 'react';
+
+declare global {
+    interface Window {
+        gtag: (...args: any[]) => void;
+    }
+}
 
 export default function GoogleAnalytics({ GA_MEASUREMENT_ID }: { GA_MEASUREMENT_ID: string }) {
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        const url = pathname + searchParams.toString();
+
+        if (typeof window.gtag !== 'undefined') {
+            window.gtag('config', GA_MEASUREMENT_ID, {
+                page_path: url,
+            });
+        }
+    }, [pathname, searchParams, GA_MEASUREMENT_ID]);
+
     return (
         <>
             <Script
@@ -20,7 +41,6 @@ export default function GoogleAnalytics({ GA_MEASUREMENT_ID }: { GA_MEASUREMENT_
             
             gtag('config', '${GA_MEASUREMENT_ID}', {
               page_path: window.location.pathname,
-              debug_mode: true // 🕵️‍♂️ ENABLE DEBUG VIEW
             });
           `,
                 }}

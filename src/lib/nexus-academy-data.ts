@@ -118,5 +118,61 @@ export const ACADEMY_DATA: AcademyTerm[] = [
         term: 'Freeze Authority',
         definition: 'El "botón de pausa". Permite al creador congelar tu billetera específica para que no puedas vender. (MUY PELIGROSO)',
         level: 'TECH'
+    },
+    {
+        id: 'slippage',
+        term: 'Slippage (Deslizamiento)',
+        definition: 'La diferencia entre el precio que esperas y el que realmente pagas. En memecoins volátiles, necesitas ajustar esto al 5-10% o más.',
+        level: 'TECH'
+    },
+    {
+        id: 'rpc',
+        term: 'RPC Node',
+        definition: 'Tu "antena" para hablar con la Blockchain. Si tu RPC es lento, los Snipers te ganarán siempre.',
+        level: 'TECH'
+    },
+
+    // 🟣 LEVEL 5: CHARTING (Gráficos)
+    {
+        id: 'candlestick',
+        term: 'Vela Japonesa (Candle)',
+        definition: 'Representa el movimiento del precio. El cuerpo es la apertura/cierre, las "mechas" son los máximos y mínimos.',
+        level: 'ROOKIE'
+    },
+    {
+        id: 'ath',
+        term: 'ATH (All Time High)',
+        definition: 'El precio más alto histórico. Mucha gente compra aquí por FOMO y luego pierde dinero.',
+        level: 'DEGEN'
+    },
+    {
+        id: 'mcap',
+        term: 'Market Cap (Capitalización)',
+        definition: 'El valor total de la moneda. (Precio x Suministro Total). Un MCap bajo significa más riesgo pero más potencial multiplicador.',
+        level: 'ROOKIE'
+    },
+    {
+        id: 'support',
+        term: 'Soporte / Suelo',
+        definition: 'Un precio donde los compradores suelen entrar, impidiendo que caiga más.',
+        level: 'ROOKIE'
+    },
+    {
+        id: 'resistance',
+        term: 'Resistencia / Techo',
+        definition: 'Un precio difícil de superar porque mucha gente vende ahí para tomar ganancias.',
+        level: 'ROOKIE'
+    },
+    {
+        id: 'correction',
+        term: 'Corrección',
+        definition: 'Una bajada saludable después de una subida fuerte. No es lo mismo que un "Crash" o un "Dump".',
+        level: 'DEGEN'
+    },
+    {
+        id: 'volume',
+        term: 'Volumen',
+        definition: 'La cantidad de dinero que se ha movido en 24h. Si sube el precio SIN volumen, es una trampa.',
+        level: 'TECH'
     }
 ];
