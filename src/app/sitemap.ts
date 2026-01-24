@@ -10,6 +10,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
             changeFrequency: 'daily', // It's a live scanner, content changes often
             priority: 1,
         },
-        // If we add more pages (blog, about), we add them here
+        {
+            url: `${baseUrl}/academy`,
+            lastModified: new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.8,
+        },
     ];
 }
