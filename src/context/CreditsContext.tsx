@@ -41,6 +41,12 @@ export function CreditsProvider({ children }: { children: ReactNode }) {
         };
 
         fetchCredits();
+
+        // POLL ON FOCUS: Re-check credits when user comes back to the tab
+        const onFocus = () => fetchCredits();
+        window.addEventListener('focus', onFocus);
+
+        return () => window.removeEventListener('focus', onFocus);
     }, [publicKey]);
 
     const addCredits = async (amount: number) => {
