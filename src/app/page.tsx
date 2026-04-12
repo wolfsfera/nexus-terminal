@@ -86,15 +86,7 @@ function NexusContent() {
       return;
     }
 
-    // Check credits via Server (Async)
-    const success = await spendCredits(1);
-    if (!success) {
-      setLogs(prev => [...prev, "> ACCESS DENIED: INSUFFICIENT CREDITS"]);
-      playAlert();
-      setTimeout(() => setIsPaymentOpen(true), 1500);
-      return;
-    }
-
+    // [MODO GRATUITO] Sin bloqueo de créditos — acceso libre
     playClick();
     setAnalyzing(true);
     setResult(null);
@@ -432,7 +424,7 @@ function NexusContent() {
                   <Play fill={!tokenInput ? 'gray' : 'black'} size={20} />
                   <span className="tracking-wider flex flex-col items-start leading-none">
                     <span>{t('ui.analyze_btn')}</span>
-                    <span className="text-[10px] opacity-70">COST: 1 CREDIT</span>
+                    <span className="text-[10px] text-green-400 font-bold">FREE SCAN ✓</span>
                   </span>
                 </motion.button>
               </div>

@@ -43,15 +43,7 @@ export default function ReportModal({ isOpen, onClose, result, onTopUp }: Report
     const handleDownloadPDF = async () => {
         if (!result) return;
 
-        // 1. Check & Spend Credit (Download is Premium Feature)
-        if (balance < 1) {
-            onTopUp(); // Open Payment Modal if insufficient
-            return;
-        }
-
-        const spent = await spendCredits(1);
-        if (!spent) return;
-
+        // [MODO GRATUITO] PDF download sin coste de créditos
         playSuccess(); // Ching!
 
         // 2. Generate PDF
